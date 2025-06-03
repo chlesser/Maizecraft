@@ -10,36 +10,45 @@ class Pathfinder extends Phaser.Scene {
 
     preload() {
         this.load.spritesheet('chars', 'assets/chars.png');
-        this.load.image('tilemap_tiles', 'assets/tiles.png');
-        this.load.tilemapTiledJSON('three-farmhouses', 'assets/three-farmhouses.json');
     }
 
     create() {
-        //Initialize tilemap - this map is temporary
-        this.map = this.add.tilemap("three-farmhouses", this.TILESIZE, this.TILESIZE);
+        //Initialize tilemap 
+        this.map = this.add.tilemap("maizecraft-map", this.TILESIZE, this.TILESIZE);
         if (!this.map) {
             console.error("Tilemap failed to load!");
             return;
         }
 
-        this.tileset = this.map.addTilesetImage("kenney-tiny-town", "tilemap_tiles");
-        this.groundLayer = this.map.createLayer("Ground-n-Walkways", this.tileset, 0, 0);
+        this.tileset = this.map.addTilesetImage("rougelike-sheet", "tilemap_tiles");
+
+        this.groundLayer = this.map.createLayer("Ground", this.tileset, 0, 0);
+        this.pathLayer = this.map.createLayer("Walkways", this.tileset, 0, 0);
         this.treesLayer = this.map.createLayer("Trees-n-Bushes", this.tileset, 0, 0);
-        this.housesLayer = this.map.createLayer("Houses-n-Fences", this.tileset, 0, 0);
 
 
         this.cameras.main.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
         this.cameras.main.setZoom(this.SCALE);
 
-        //temporary map
-        const walkables = [1, 2, 3, 30, 40, 41, 42, 43, 44, 95, 13, 14, 15, 25, 26, 27, 37, 38, 39, 70, 84];
-        this.grid = this.layersToGrid([this.groundLayer, this.treesLayer, this.housesLayer]);
+        this.grid = this.layersToGrid([this.groundLayer, this.pathLayer, this.treesLayer]);
+        
+        // Detect walkable tiles via tile property "path"
+        const walkableTiles = [];
+        for (let i = 0; i < this.tileset.total; i++) {
+            const props = this.tileset.getTileProperties(i);
+            if (props?.path) {
+                walkableTiles.push(i);
+            }
+        }
+
+        // get path start and end points
+        this.pathEndpoints = this.getPathEndpoints();
 
         //easy star
         this.finder = new EasyStar.js();
         this.finder.setGrid(this.grid);
-        this.finder.setAcceptableTiles(walkables);
-        this.finder.enableDiagonals();
+        this.finder.setAcceptableTiles(walkableTiles);
+        this.finder.disableDiagonals(); // DISABLED for simple movement
         this.finder.setIterationsPerCalculation(1000);
         this.finder.calculate();
 
@@ -65,10 +74,7 @@ class Pathfinder extends Phaser.Scene {
     update() {
         /*delete later*/
         if (Phaser.Input.Keyboard.JustDown(this.keys.R)) {
-            this.spawnNPC(
-                Phaser.Math.Between(5, this.map.width - 5) * this.TILESIZE,
-                Phaser.Math.Between(5, this.map.height - 5) * this.TILESIZE
-            );
+            this.spawnNPC();
         }
 
         if (Phaser.Input.Keyboard.JustDown(this.keys.D)) {
@@ -79,86 +85,113 @@ class Pathfinder extends Phaser.Scene {
         }
     }
 
-    spawnNPC(x, y) {
-    //NPC from pool but keep it hidden (so it doesnt flicker)
-    const npc = this.npcPool.get(0, 0);
-    npc.setActive(true).setVisible(false);
+//---------------------------- HELPER FUNCTIONS ----------------------------//
 
-    //Initialize sprites if needed (while hidden)
-    if (!npc.sprites) {
-        npc.sprites = {
-            body: this.add.sprite(0, 0, 'chars', 0).setVisible(false),
-            drawls: this.add.sprite(0, 0, 'chars', 0).setVisible(false),
-            shoes: this.add.sprite(0, 0, 'chars', 0).setVisible(false),
-            armor: this.add.sprite(0, 0, 'chars', 0).setVisible(false),
-            wig: this.add.sprite(0, 0, 'chars', 0).setVisible(false)
-        };
-        npc.add(Object.values(npc.sprites));
-    }
+    spawnNPC() {
+        // set start spawn point for npcs
+        const {start} = this.pathEndpoints;
+        const x = (start.x + 0.5) * this.TILESIZE;
+        const y = (start.y + 0.5) * this.TILESIZE;
 
-    //set location and randomize
-    npc.x = x;
-    npc.y = y;
-    this.randomizeNPC(npc);
+        //NPC from pool but keep it hidden (so it doesnt flicker)
+        const npc = this.npcPool.get(0, 0);
+        npc.setActive(true).setVisible(false);
 
-    //Brief delay before showing to prevent flicker
-    this.time.delayedCall(50, () => {
-        Object.values(npc.sprites).forEach(sprite => sprite.setVisible(true));
-        npc.setVisible(true);
-        
-        //Start movement after another brief delay
-        this.time.delayedCall(Phaser.Math.Between(500, 1500), () => {
-            this.assignPathfinding(npc);
-        });
-    });
-    return npc;
-}
-    //TO FIX LATER
-    assignPathfinding(npc) { //this will get changed once we have map and actual paths
-        //current grid position
-        const currentX = Math.floor(npc.x / this.TILESIZE);
-        const currentY = Math.floor(npc.y / this.TILESIZE);
+        //Initialize sprites if needed (while hidden)
+        if (!npc.sprites) {
+            npc.sprites = {
+                body: this.add.sprite(0, 0, 'chars', 0).setVisible(false),
+                drawls: this.add.sprite(0, 0, 'chars', 0).setVisible(false),
+                shoes: this.add.sprite(0, 0, 'chars', 0).setVisible(false),
+                armor: this.add.sprite(0, 0, 'chars', 0).setVisible(false),
+                wig: this.add.sprite(0, 0, 'chars', 0).setVisible(false)
+            };
+            npc.add(Object.values(npc.sprites));
+        }
 
-        //define walkable tiles
-        const walkableTiles = [1, 2, 3, 30, 40, 41, 42, 43, 44, 95, 13, 14, 15, 25, 26, 27, 37, 38, 39, 70, 84];
-        const directions = [
-            { x: 0, y: -1, weight: 1 }, //up
-            { x: 1, y: 0, weight: 1 },  //right
-            { x: 0, y: 1, weight: 1 },  //down
-            { x: -1, y: 0, weight: 1 }  //left
-        ];
-        const validMoves = directions.filter(dir => {
-            const newX = currentX + dir.x;
-            const newY = currentY + dir.y;
-            return newX >= 0 && newX < this.grid[0].length && 
-                   newY >= 0 && newY < this.grid.length &&
-                   walkableTiles.includes(this.grid[newY][newX]);
-        });
+        //set location and randomize
+        npc.x = x;
+        npc.y = y;
+        this.randomizeNPC(npc);
 
-        if (validMoves.length > 0) {
-            const move = Phaser.Utils.Array.GetRandom(validMoves);
-            const targetX = currentX + move.x;
-            const targetY = currentY + move.y;
-
-            //moves one tile
-            this.tweens.add({
-                targets: npc,
-                x: (targetX + 0.5) * this.TILESIZE,
-                y: (targetY + 0.5) * this.TILESIZE,
-                duration: 400,
-                onComplete: () => {
-                    this.time.delayedCall(Phaser.Math.Between(0, 2000), () => {
-                        this.assignPathfinding(npc);
-                    });
-                }
-            });
-        }else {
-            this.time.delayedCall(Phaser.Math.Between(2000, 4000), () => {
+        //Brief delay before showing to prevent flicker
+        this.time.delayedCall(50, () => {
+            Object.values(npc.sprites).forEach(sprite => sprite.setVisible(true));
+            npc.setVisible(true);
+            
+            //Start movement after another brief delay
+            this.time.delayedCall(Phaser.Math.Between(500, 1500), () => {
                 this.assignPathfinding(npc);
             });
-            
-        }
+        });
+        return npc;
     }
+
+
+    // NOT FULLY WORKING YET
+    // NPCs only walk from start to end off intended path as of noew
+    assignPathfinding(npc) {
+        const { start, end } = this.pathEndpoints;
+
+        this.finder.findPath(start.x, start.y, end.x, end.y, path => {
+            if (!path || path.length === 0) {
+                console.warn("No path found!");
+                return;
+            }
+
+            this.followPath(npc, path);
+        });
+
+        this.finder.calculate();
+    }
+
+
+    followPath(npc, path) {
+        // for testing - REMOVE LATER
+        const graphics = this.add.graphics({ lineStyle: { width: 1, color: 0xff0000 } });
+        //
+
+        const points = path.map(step => ({
+            x: (step.x + 0.5) * this.TILESIZE,
+            y: (step.y + 0.5) * this.TILESIZE
+        }));
+
+        // draw path line - REMOVE LATER
+        for (let i = 0; i < points.length - 1; i++) {
+            graphics.strokeLineShape(new Phaser.Geom.Line(
+                points[i].x, points[i].y,
+                points[i + 1].x, points[i + 1].y
+            ));
+        }
+        // 
+
+        this.tweens.add({
+            targets: npc,
+            props: {
+                x: { value: points.map(p => p.x), ease: 'Linear' },
+                y: { value: points.map(p => p.y), ease: 'Linear' }
+            },
+            duration: path.length * 300,
+            onComplete: () => this.assignPathfinding(npc)
+        });
+    }
+
+
+    getPathEndpoints() {
+        const objects = this.map.getObjectLayer("PathPoints").objects;
+        let start = null;
+        let end = null;
+
+        objects.forEach(obj => {
+            const tileX = Math.floor(obj.x / this.TILESIZE);
+            const tileY = Math.floor(obj.y / this.TILESIZE);
+            if (obj.name === "start") start = { x: tileX, y: tileY };
+            if (obj.name === "end") end = { x: tileX, y: tileY };
+        });
+
+        return { start, end };
+    }
+
 
     layersToGrid(layers) {
         const grid = [];
@@ -176,27 +209,12 @@ class Pathfinder extends Phaser.Scene {
         return grid;
     }
 
-    followPath(npc, path) {
-        const points = path.map(step => ({
-            x: (step.x + 0.5) * this.TILESIZE,
-            y: (step.y + 0.5) * this.TILESIZE
-        }));
-
-        this.tweens.add({
-            targets: npc,
-            props: {
-                x: { value: points.map(p => p.x), ease: 'Linear' },
-                y: { value: points.map(p => p.y), ease: 'Linear' }
-            },
-            duration: path.length * 300,
-            onComplete: () => this.assignPathfinding(npc)
-        });
-    }
 
     despawnNPC(npc) {
         this.tweens.killTweensOf(npc);
         this.npcPool.killAndHide(npc);
     }
+
 
     randomizeNPC(npc) { //again, theres no distinction between friend and foe rn
         const {body, drawls, shoes, armor, wig} = npc.sprites;
@@ -208,6 +226,7 @@ class Pathfinder extends Phaser.Scene {
         npc.setScale(Phaser.Math.Between(0, 1) ? -1 : 1, 1);
     }
 
+
     generateDrawlsFrames() {
         const drawls = [];
         for (let frame = 3; frame <= 435; frame += 54) {
@@ -216,6 +235,7 @@ class Pathfinder extends Phaser.Scene {
         return drawls;
     }
 
+    
     generateShoesFrames() {
         const shoes = [];
         for (let frame = 4; frame <= 490; frame += 54) {
@@ -225,6 +245,7 @@ class Pathfinder extends Phaser.Scene {
         if (!shoes.includes(489)) shoes.push(489);
         return shoes;
     }
+
 
     generateArmorFrames() { //can change this up for specific classes later
         const armor = [];
@@ -236,6 +257,7 @@ class Pathfinder extends Phaser.Scene {
         }
         return armor;
     }
+
 
     generateWigFrames() {
         const wigFrames = [];

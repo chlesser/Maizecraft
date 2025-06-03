@@ -13,9 +13,13 @@ class Load extends Phaser.Scene {
             frameHeight: 17
         });
 
-        //TEMPORARY UNTIL WE GET ACTUAL MAP
+        /* TEMPORARY UNTIL WE GET ACTUAL MAP
         this.load.image("tilemap_tiles", "tilemap_packed.png");                   // Packed tilemap
         this.load.tilemapTiledJSON("three-farmhouses", "three-farmhouses.tmj");   // Tilemap in JSON
+        */
+       // load game map
+        this.load.image("tilemap_tiles", "roguelikeSheet_transparent.png");
+        this.load.tilemapTiledJSON("maizecraft-map", "maizecraft-map.tmj");
 
 
     }
