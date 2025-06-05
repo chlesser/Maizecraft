@@ -1,7 +1,14 @@
 class Pathfinder extends Phaser.Scene {
     constructor() {
         super("pathfinderScene");
+
+        // npc pool
         this.npcPool = null;
+
+        // modes
+        this.placeMode = false;
+
+        //map properties
         this.TILESIZE = 16;
         this.SCALE = 2.0;
         this.TILEWIDTH = 40;
@@ -140,6 +147,9 @@ class Pathfinder extends Phaser.Scene {
             // });
         });
         return npc;
+    }
+    spawnTurret() {
+        const turret = new Turret()
     }
 
 
@@ -314,8 +324,11 @@ class Pathfinder extends Phaser.Scene {
     */
 
     handlePlacemode(turret) {
-        turret.x = Math.floor(this.pointer.worldX / this.TILESIZE)
-        turret.y = Math.floor(this.pointer.worldY / this.TILESIZE)
+        if (turret != null) {
+                turret.x = Math.floor(this.pointer.worldX / this.TILESIZE)
+                turret.y = Math.floor(this.pointer.worldY / this.TILESIZE)
+        }
+
         if (this.pointer.isDown) {
             const tileX = Math.floor(this.pointer.worldX / this.TILESIZE);
             const tileY = Math.floor(this.pointer.worldY / this.TILESIZE);
