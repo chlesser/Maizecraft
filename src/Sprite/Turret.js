@@ -1,7 +1,5 @@
-class Turret extends Phaser.GameObjects.Sprite {
-    constructor(scene, type, x, y, texture, frame) {
-        super(scene, x, y, texture, frame);
-
+class Turret {
+    constructor(type) {
         //stats
         this.damage = 1;
         this.range = 1;
@@ -21,13 +19,6 @@ class Turret extends Phaser.GameObjects.Sprite {
             fire: 0,
             frost: 0
         }
-
-        //taking care of visuals
-        this.scene = scene;
-        this.setOrigin(0.5, 0.5);
-        this.setScale(2);
-
-        this.scene.add.existing(this);
     }
 
     update() {

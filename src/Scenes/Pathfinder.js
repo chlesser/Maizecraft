@@ -160,8 +160,38 @@ class Pathfinder extends Phaser.Scene {
     */
 
     spawnTurret(type) {
-        const turret = new Turret(this, type, 0, 0, '');
-        return turret;
+        let npc = this.npcPool.get(0, 0);
+        npc.setActive(true).setVisible(false);
+
+        //Initialize sprites if needed (while hidden)
+        if (!npc.sprites) {
+            npc.sprites = {
+                body: this.add.sprite(0, 0, 'chars', 0).setVisible(false),
+                drawls: this.add.sprite(0, 0, 'chars', 0).setVisible(false),
+                shoes: this.add.sprite(0, 0, 'chars', 0).setVisible(false),
+                armor: this.add.sprite(0, 0, 'chars', 0).setVisible(false),
+                wig: this.add.sprite(0, 0, 'chars', 0).setVisible(false)
+            };
+            npc.add(Object.values(npc.sprites));
+        }
+
+        //set location and randomize
+        this.randomizeNPC(npc);
+        const turret = new Turret(type);
+        npc.turret = turret;
+
+
+        //Brief delay before showing to prevent flicker
+        this.time.delayedCall(50, () => {
+            Object.values(npc.sprites).forEach(sprite => sprite.setVisible(true));
+            npc.setVisible(true);
+            
+            //Start movement after another brief delay
+            // this.time.delayedCall(Phaser.Math.Between(500, 1500), () => {
+            //     this.assignPathfinding(npc);
+            // });
+        });
+        return npc;
     }
 
 
@@ -336,11 +366,11 @@ class Pathfinder extends Phaser.Scene {
             If the tile is not empty, it does nothing.
     */
 
-    handlePlacemode(turret) {
-        if (turret != null) {
-                turret.x = Math.floor((this.pointer.worldX / this.TILESIZE) + 0.5) * this.TILESIZE;
-                turret.y = Math.floor((this.pointer.worldY / this.TILESIZE) + 0.5) * this.TILESIZE;
-                turret.setVisible(true);
+    handlePlacemode(hero) {
+        if (hero != null) {
+                hero.x = Math.floor((this.pointer.worldX / this.TILESIZE) + 0.5) * this.TILESIZE;
+                hero.y = Math.floor((this.pointer.worldY / this.TILESIZE) + 0.5) * this.TILESIZE;
+                hero.setVisible(true);
         }
 
         if (this.pointer.isDown) {
@@ -349,9 +379,9 @@ class Pathfinder extends Phaser.Scene {
             const tileIndex = this.map.getTileAt(tileX, tileY, true, this.groundLayer);
             console.log((this.tileset.getTileProperties(tileIndex.index)).walkway)
             if (tileIndex) { // Check if the tile exists empty
-                turret.x = (tileX + 0.5) * this.TILESIZE;
-                turret.y = (tileY + 0.5) * this.TILESIZE;
-                this.currentTurret = null; // Clear current turret reference
+                hero.x = (tileX + 0.5) * this.TILESIZE;
+                hero.y = (tileY + 0.5) * this.TILESIZE;
+                this.currentTurret = null; // Clear current hero reference
                 this.placeMode = false; // Exit place mode after placing
             }
         }
