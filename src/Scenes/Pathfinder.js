@@ -13,6 +13,7 @@ class Pathfinder extends Phaser.Scene {
     }
 
     create() {
+        this.placeMode = false;
         //Initialize tilemap 
         this.map = this.add.tilemap("maizecraft-map", this.TILESIZE, this.TILESIZE);
         if (!this.map) {
@@ -68,7 +69,8 @@ class Pathfinder extends Phaser.Scene {
         });
 
         //delete later
-        this.keys = this.input.keyboard.addKeys('R,D');
+        this.keys = this.input.keyboard.addKeys('R,D,P');
+        this.pointer = this.input.activePointer;
     }
 
     update() {
@@ -82,6 +84,19 @@ class Pathfinder extends Phaser.Scene {
             if (activeNpcs.length > 0) {
                 this.despawnNPC(activeNpcs[0]);
             }
+        }
+        if (Phaser.Input.Keyboard.JustDown(this.keys.P)) {
+            // place turret test
+            if (this.placeMode) {
+                this.placeMode = false;
+            } else {
+                // toggle place mode and generate an NPC that hugs the cursor
+                this.spawnNPC();
+                this.placeMode = true;
+            }
+        }
+        if(this.placeMode) {
+            this.handlePlacemode();
         }
     }
 
@@ -120,9 +135,9 @@ class Pathfinder extends Phaser.Scene {
             npc.setVisible(true);
             
             //Start movement after another brief delay
-            this.time.delayedCall(Phaser.Math.Between(500, 1500), () => {
-                this.assignPathfinding(npc);
-            });
+            // this.time.delayedCall(Phaser.Math.Between(500, 1500), () => {
+            //     this.assignPathfinding(npc);
+            // });
         });
         return npc;
     }
@@ -273,5 +288,44 @@ class Pathfinder extends Phaser.Scene {
         }
     
         return wigFrames;
+    }
+
+    /*
+        isPlaceable
+        Input --> Takes in a tile index
+        Output ---> Boolean
+        Description --> This function checks if a tile is obstructed by checking its properties.
+            If the tile has no properties or the walkway property is not set, it returns true (obstructed).
+            Otherwise, it returns false (not obstructed).
+    */
+    isPlaceable(tileIndex) {
+        const properties = this.tileset.getTileProperties(tileIndex);
+        return !(properties || properties.walkway);
+    }
+
+    /*
+        HandlePlaceMode
+        Input --> Takes in a turret object
+        Output ---> null
+        Description --> This function is only called when placeMode is active.
+            It checks if the pointer is down and if the tile at the pointer position is both active and not a walkway
+            If so, it spawns an NPC at the tile position and exits place mode.
+            If the tile is not empty, it does nothing.
+    */
+
+    handlePlacemode(turret) {
+        turret.x = Math.floor(this.pointer.worldX / this.TILESIZE)
+        turret.y = Math.floor(this.pointer.worldY / this.TILESIZE)
+        if (this.pointer.isDown) {
+            const tileX = Math.floor(this.pointer.worldX / this.TILESIZE);
+            const tileY = Math.floor(this.pointer.worldY / this.TILESIZE);
+            const tileIndex = this.map.getTileAt(tileX, tileY, true, this.groundLayer);
+            if (tileIndex && this.isPlaceable(tileIndex.index)) { // Check if the tile exists empty
+                const npc = this.spawnNPC();
+                npc.x = (tileX + 0.5) * this.TILESIZE;
+                npc.y = (tileY + 0.5) * this.TILESIZE;
+                this.placeMode = false; // Exit place mode after placing
+            }
+        }
     }
 }
