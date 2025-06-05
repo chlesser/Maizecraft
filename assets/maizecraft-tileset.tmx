@@ -2,8 +2,153 @@
 <map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="40" height="25" tilewidth="16" tileheight="16" infinite="0" nextlayerid="5" nextobjectid="1">
  <tileset firstgid="1" name="rougelike-sheet" tilewidth="16" tileheight="16" spacing="1" tilecount="1767" columns="57">
   <image source="roguelikeSheet_transparent.png" width="968" height="526"/>
+  <tile id="404">
+   <properties>
+    <property name="walkway" type="bool" value="true"/>
+   </properties>
+  </tile>
+  <tile id="405">
+   <properties>
+    <property name="walkway" type="bool" value="true"/>
+   </properties>
+  </tile>
+  <tile id="406">
+   <properties>
+    <property name="walkway" type="bool" value="true"/>
+   </properties>
+  </tile>
+  <tile id="407">
+   <properties>
+    <property name="walkway" type="bool" value="true"/>
+   </properties>
+  </tile>
+  <tile id="408">
+   <properties>
+    <property name="walkway" type="bool" value="true"/>
+   </properties>
+  </tile>
+  <tile id="461">
+   <properties>
+    <property name="walkway" type="bool" value="true"/>
+   </properties>
+  </tile>
+  <tile id="462">
+   <properties>
+    <property name="walkway" type="bool" value="true"/>
+   </properties>
+  </tile>
+  <tile id="463">
+   <properties>
+    <property name="walkway" type="bool" value="true"/>
+   </properties>
+  </tile>
+  <tile id="464">
+   <properties>
+    <property name="walkway" type="bool" value="true"/>
+   </properties>
+  </tile>
+  <tile id="465">
+   <properties>
+    <property name="walkway" type="bool" value="true"/>
+   </properties>
+  </tile>
+  <tile id="518">
+   <properties>
+    <property name="walkway" type="bool" value="true"/>
+   </properties>
+  </tile>
+  <tile id="519">
+   <properties>
+    <property name="walkway" type="bool" value="true"/>
+   </properties>
+  </tile>
+  <tile id="520">
+   <properties>
+    <property name="walkway" type="bool" value="true"/>
+   </properties>
+  </tile>
+  <tile id="521">
+   <properties>
+    <property name="walkway" type="bool" value="true"/>
+   </properties>
+  </tile>
+  <tile id="522">
+   <properties>
+    <property name="walkway" type="bool" value="true"/>
+   </properties>
+  </tile>
+  <tile id="575">
+   <properties>
+    <property name="walkway" type="bool" value="true"/>
+   </properties>
+  </tile>
+  <tile id="576">
+   <properties>
+    <property name="walkway" type="bool" value="true"/>
+   </properties>
+  </tile>
+  <tile id="577">
+   <properties>
+    <property name="walkway" type="bool" value="true"/>
+   </properties>
+  </tile>
+  <tile id="578">
+   <properties>
+    <property name="walkway" type="bool" value="true"/>
+   </properties>
+  </tile>
+  <tile id="579">
+   <properties>
+    <property name="walkway" type="bool" value="true"/>
+   </properties>
+  </tile>
+  <tile id="632">
+   <properties>
+    <property name="walkway" type="bool" value="true"/>
+   </properties>
+  </tile>
+  <tile id="633">
+   <properties>
+    <property name="walkway" type="bool" value="true"/>
+   </properties>
+  </tile>
+  <tile id="634">
+   <properties>
+    <property name="walkway" type="bool" value="true"/>
+   </properties>
+  </tile>
+  <tile id="635">
+   <properties>
+    <property name="walkway" type="bool" value="true"/>
+   </properties>
+  </tile>
+  <tile id="636">
+   <properties>
+    <property name="walkway" type="bool" value="true"/>
+   </properties>
+  </tile>
+  <tile id="689">
+   <properties>
+    <property name="walkway" type="bool" value="true"/>
+   </properties>
+  </tile>
+  <tile id="690">
+   <properties>
+    <property name="walkway" type="bool" value="true"/>
+   </properties>
+  </tile>
+  <tile id="691">
+   <properties>
+    <property name="walkway" type="bool" value="true"/>
+   </properties>
+  </tile>
+  <tile id="692">
+   <properties>
+    <property name="walkway" type="bool" value="true"/>
+   </properties>
+  </tile>
  </tileset>
- <layer id="2" name="Ground-n-Walkways" width="40" height="25">
+ <layer id="2" name="Ground" width="40" height="25">
   <data encoding="csv">
 63,63,63,6,63,63,6,63,63,63,63,6,63,6,6,6,6,63,63,6,6,6,6,6,63,6,63,6,6,6,6,6,6,63,6,63,63,6,6,6,
 6,63,63,63,63,63,63,6,6,63,63,6,6,6,6,63,63,6,63,6,63,6,63,6,6,63,6,6,6,6,63,6,6,63,6,6,63,6,63,6,
@@ -38,7 +183,7 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,521,522,522,522,522,522,522,522,522,523,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,578,579,636,636,636,636,636,636,579,579,0,0,0,0,0,0,0,0,0,0,0,0,521,522,522,522,522,522,522,522,523,0,0,0,0,
+0,0,0,0,0,578,579,636,636,636,636,636,636,579,580,0,0,0,0,0,0,0,0,0,0,0,0,521,522,522,522,522,522,522,522,523,0,0,0,0,
 0,0,0,0,0,578,580,0,0,0,0,0,0,578,580,0,0,0,0,0,0,0,0,0,0,0,0,578,579,636,636,636,636,636,579,580,0,0,0,0,
 0,0,0,0,0,578,580,0,0,0,0,0,0,578,580,0,0,0,0,0,0,0,0,0,0,0,0,578,580,0,0,0,0,0,578,580,0,0,0,0,
 0,0,0,0,0,578,580,0,0,0,0,0,0,578,580,0,0,0,0,0,0,0,0,0,0,0,0,578,580,0,0,0,0,0,578,580,0,0,0,0,
