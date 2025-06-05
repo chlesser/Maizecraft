@@ -7,6 +7,7 @@ class Pathfinder extends Phaser.Scene {
 
         // modes
         this.placeMode = false;
+        this.currentTurret = null;
 
         //map properties
         this.TILESIZE = 16;
@@ -20,7 +21,10 @@ class Pathfinder extends Phaser.Scene {
     }
 
     create() {
+        // Initialize properties
         this.placeMode = false;
+        this.currentTurret = null;
+
         //Initialize tilemap 
         this.map = this.add.tilemap("maizecraft-map", this.TILESIZE, this.TILESIZE);
         if (!this.map) {
@@ -98,12 +102,12 @@ class Pathfinder extends Phaser.Scene {
                 this.placeMode = false;
             } else {
                 // toggle place mode and generate an NPC that hugs the cursor
-                this.spawnNPC();
+                this.currentTurret = this.spawnTurret('warrior'); // Example turret type
                 this.placeMode = true;
             }
         }
         if(this.placeMode) {
-            this.handlePlacemode();
+            this.handlePlacemode(this.currentTurret);
         }
     }
 
@@ -148,8 +152,16 @@ class Pathfinder extends Phaser.Scene {
         });
         return npc;
     }
-    spawnTurret() {
-        const turret = new Turret()
+    /*
+        spawnTurret
+        Input --> Takes in a turret type as a string
+        Output --> returns a new turret object
+        Description --> This function creates a new turret object of the specified type.
+    */
+
+    spawnTurret(type) {
+        const turret = new Turret(this, type, 0, 0, '');
+        return turret;
     }
 
 
@@ -308,6 +320,7 @@ class Pathfinder extends Phaser.Scene {
             If the tile has no properties or the walkway property is not set, it returns true (obstructed).
             Otherwise, it returns false (not obstructed).
     */
+
     isPlaceable(tileIndex) {
         const properties = this.tileset.getTileProperties(tileIndex);
         return !(properties || properties.walkway);
@@ -325,18 +338,20 @@ class Pathfinder extends Phaser.Scene {
 
     handlePlacemode(turret) {
         if (turret != null) {
-                turret.x = Math.floor(this.pointer.worldX / this.TILESIZE)
-                turret.y = Math.floor(this.pointer.worldY / this.TILESIZE)
+                turret.x = Math.floor((this.pointer.worldX / this.TILESIZE) + 0.5) * this.TILESIZE;
+                turret.y = Math.floor((this.pointer.worldY / this.TILESIZE) + 0.5) * this.TILESIZE;
+                turret.setVisible(true);
         }
 
         if (this.pointer.isDown) {
             const tileX = Math.floor(this.pointer.worldX / this.TILESIZE);
             const tileY = Math.floor(this.pointer.worldY / this.TILESIZE);
             const tileIndex = this.map.getTileAt(tileX, tileY, true, this.groundLayer);
-            if (tileIndex && this.isPlaceable(tileIndex.index)) { // Check if the tile exists empty
-                const npc = this.spawnNPC();
-                npc.x = (tileX + 0.5) * this.TILESIZE;
-                npc.y = (tileY + 0.5) * this.TILESIZE;
+            console.log((this.tileset.getTileProperties(tileIndex.index)).walkway)
+            if (tileIndex) { // Check if the tile exists empty
+                turret.x = (tileX + 0.5) * this.TILESIZE;
+                turret.y = (tileY + 0.5) * this.TILESIZE;
+                this.currentTurret = null; // Clear current turret reference
                 this.placeMode = false; // Exit place mode after placing
             }
         }
