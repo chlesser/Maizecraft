@@ -31,15 +31,6 @@ class Pathfinder extends Phaser.Scene {
         this.cameras.main.setZoom(this.SCALE);
 
         this.grid = this.layersToGrid([this.groundLayer, this.pathLayer, this.treesLayer]);
-        
-        // Detect walkable tiles via tile property "path"
-        const walkableTiles = [];
-        for (let i = 0; i < this.tileset.total; i++) {
-            const props = this.tileset.getTileProperties(i);
-            if (props?.path) {
-                walkableTiles.push(i);
-            }
-        }
 
         //so sorry gang i went and did it this way...
         this.pathPoints = [
