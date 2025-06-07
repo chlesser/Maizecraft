@@ -41,17 +41,29 @@ class Pathfinder extends Phaser.Scene {
             }
         }
 
-        // get path start and end points
-        this.pathEndpoints = this.getPathEndpoints();
+        //so sorry gang i went and did it this way...
+        this.pathPoints = [
+            { x: (0) * this.TILESIZE, y: (10) * this.TILESIZE },    // Point 1
+            { x: (6) * this.TILESIZE, y: (10) * this.TILESIZE },   // Point 2
+            { x: (6) * this.TILESIZE, y: (4) * this.TILESIZE },   // Point 3
+            { x: (14) * this.TILESIZE, y: (4) * this.TILESIZE },   // Point 4
+            { x: (14) * this.TILESIZE, y: (16) * this.TILESIZE },  // Point 5
+            { x: (4) * this.TILESIZE, y: (16) * this.TILESIZE },  // Point 6
+            { x: (4) * this.TILESIZE, y: (22) * this.TILESIZE },  // Point 7
+            { x: (29) * this.TILESIZE, y: (22) * this.TILESIZE },  // Point 8
+            { x: (29) * this.TILESIZE, y: (16) * this.TILESIZE },   // Point 9
+            { x: (23) * this.TILESIZE, y: (16) * this.TILESIZE },   // Point 10
+            { x: (23) * this.TILESIZE, y: (10) * this.TILESIZE },   // Point 11
+            { x: (28) * this.TILESIZE, y: (10) * this.TILESIZE },  // Point 12
+            { x: (28) * this.TILESIZE, y: (5) * this.TILESIZE },  // Point 13
+            { x: (35) * this.TILESIZE, y: (5) * this.TILESIZE },  // Point 14
+            { x: (35) * this.TILESIZE, y: (11) * this.TILESIZE },   // Point 15
+            { x: (40) * this.TILESIZE, y: (11) * this.TILESIZE }   // Point 16
+        ];
+        
+        this.currentPathIndex = 0;
 
-        //easy star
-        this.finder = new EasyStar.js();
-        this.finder.setGrid(this.grid);
-        this.finder.setAcceptableTiles(walkableTiles);
-        this.finder.disableDiagonals(); // DISABLED for simple movement
-        this.finder.setIterationsPerCalculation(1000);
-        this.finder.calculate();
-
+       
         //initialize clothing options
         this.clothingOptions = {
             bodies: [0, 1, 54, 55, 108, 109, 162, 163], //162 and 163 are green
@@ -87,17 +99,12 @@ class Pathfinder extends Phaser.Scene {
 
 //---------------------------- HELPER FUNCTIONS ----------------------------//
 
-    spawnNPC() {
-        // set start spawn point for npcs
-        const {start} = this.pathEndpoints;
-        const x = (start.x + 0.5) * this.TILESIZE;
-        const y = (start.y + 0.5) * this.TILESIZE;
-
-        //NPC from pool but keep it hidden (so it doesnt flicker)
-        const npc = this.npcPool.get(0, 0);
+        spawnNPC() {
+        const spawnPoint = this.pathPoints[0];
+        const npc = this.npcPool.get(spawnPoint.x, spawnPoint.y);
         npc.setActive(true).setVisible(false);
 
-        //Initialize sprites if needed (while hidden)
+        //initialize sprites if needed
         if (!npc.sprites) {
             npc.sprites = {
                 body: this.add.sprite(0, 0, 'chars', 0).setVisible(false),
@@ -109,89 +116,46 @@ class Pathfinder extends Phaser.Scene {
             npc.add(Object.values(npc.sprites));
         }
 
-        //set location and randomize
-        npc.x = x;
-        npc.y = y;
+        npc.x = spawnPoint.x;
+        npc.y = spawnPoint.y;
+        
+        //add individual path tracking for each NPC
+        npc.currentPathIndex = 0;
+        
         this.randomizeNPC(npc);
 
-        //Brief delay before showing to prevent flicker
         this.time.delayedCall(50, () => {
             Object.values(npc.sprites).forEach(sprite => sprite.setVisible(true));
             npc.setVisible(true);
-            
-            //Start movement after another brief delay
-            this.time.delayedCall(Phaser.Math.Between(500, 1500), () => {
-                this.assignPathfinding(npc);
-            });
+            this.startNPCMovement(npc);
         });
+
         return npc;
     }
 
+    startNPCMovement(npc) {
+        const nextIndex = (npc.currentPathIndex + 1) % this.pathPoints.length;
+        const nextPoint = this.pathPoints[nextIndex];
+        
+        npc.currentPathIndex = nextIndex;
 
-    // NOT FULLY WORKING YET
-    // NPCs only walk from start to end off intended path as of noew
-    assignPathfinding(npc) {
-        const { start, end } = this.pathEndpoints;
-
-        this.finder.findPath(start.x, start.y, end.x, end.y, path => {
-            if (!path || path.length === 0) {
-                console.warn("No path found!");
-                return;
-            }
-
-            this.followPath(npc, path);
-        });
-
-        this.finder.calculate();
-    }
-
-
-    followPath(npc, path) {
-        // for testing - REMOVE LATER
-        const graphics = this.add.graphics({ lineStyle: { width: 1, color: 0xff0000 } });
-        //
-
-        const points = path.map(step => ({
-            x: (step.x + 0.5) * this.TILESIZE,
-            y: (step.y + 0.5) * this.TILESIZE
-        }));
-
-        // draw path line - REMOVE LATER
-        for (let i = 0; i < points.length - 1; i++) {
-            graphics.strokeLineShape(new Phaser.Geom.Line(
-                points[i].x, points[i].y,
-                points[i + 1].x, points[i + 1].y
-            ));
-        }
-        // 
+        const dx = nextPoint.x - npc.x;
+        const dy = nextPoint.y - npc.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        const speed = 64;
+        const duration = (distance / speed) * 1000;
 
         this.tweens.add({
             targets: npc,
-            props: {
-                x: { value: points.map(p => p.x), ease: 'Linear' },
-                y: { value: points.map(p => p.y), ease: 'Linear' }
-            },
-            duration: path.length * 300,
-            onComplete: () => this.assignPathfinding(npc)
+            x: nextPoint.x,
+            y: nextPoint.y,
+            duration: duration,
+            ease: 'Linear',
+            onComplete: () => {
+                this.startNPCMovement(npc);
+            }
         });
     }
-
-
-    getPathEndpoints() {
-        const objects = this.map.getObjectLayer("PathPoints").objects;
-        let start = null;
-        let end = null;
-
-        objects.forEach(obj => {
-            const tileX = Math.floor(obj.x / this.TILESIZE);
-            const tileY = Math.floor(obj.y / this.TILESIZE);
-            if (obj.name === "start") start = { x: tileX, y: tileY };
-            if (obj.name === "end") end = { x: tileX, y: tileY };
-        });
-
-        return { start, end };
-    }
-
 
     layersToGrid(layers) {
         const grid = [];
