@@ -57,7 +57,8 @@ class Pathfinder extends Phaser.Scene {
        
         //initialize clothing options
         this.clothingOptions = {
-            bodies: [0, 1, 54, 55, 108, 109, 162, 163], //162 and 163 are green
+            bodies: [0, 1, 54, 55, 108, 109], //162 and 163 are green
+            orcbodies: [162, 163],
             drawls: this.generateDrawlsFrames(),
             shoes: this.generateShoesFrames(),
             armor: this.generateArmorFrames(),
@@ -113,7 +114,7 @@ class Pathfinder extends Phaser.Scene {
         //add individual path tracking for each NPC
         npc.currentPathIndex = 0;
         
-        this.randomizeNPC(npc);
+        this.randomizeOrc(npc);
 
         this.time.delayedCall(50, () => {
             Object.values(npc.sprites).forEach(sprite => sprite.setVisible(true));
@@ -133,7 +134,7 @@ class Pathfinder extends Phaser.Scene {
         const dx = nextPoint.x - npc.x;
         const dy = nextPoint.y - npc.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
-        const speed = 64;
+        const speed = 60; //adjust as you please
         const duration = (distance / speed) * 1000;
 
         this.tweens.add({
@@ -174,6 +175,16 @@ class Pathfinder extends Phaser.Scene {
     randomizeNPC(npc) { //again, theres no distinction between friend and foe rn
         const {body, drawls, shoes, armor, wig} = npc.sprites;
         body.setFrame(Phaser.Utils.Array.GetRandom(this.clothingOptions.bodies));
+        drawls.setFrame(Phaser.Utils.Array.GetRandom(this.clothingOptions.drawls));
+        shoes.setFrame(Phaser.Utils.Array.GetRandom(this.clothingOptions.shoes));
+        armor.setFrame(Phaser.Utils.Array.GetRandom(this.clothingOptions.armor));
+        wig.setFrame(Phaser.Utils.Array.GetRandom(this.clothingOptions.wig));
+        npc.setScale(Phaser.Math.Between(0, 1) ? -1 : 1, 1);
+    }
+
+    randomizeOrc(npc) { //again, theres no distinction between friend and foe rn
+        const {body, drawls, shoes, armor, wig} = npc.sprites;
+        body.setFrame(Phaser.Utils.Array.GetRandom(this.clothingOptions.orcbodies));
         drawls.setFrame(Phaser.Utils.Array.GetRandom(this.clothingOptions.drawls));
         shoes.setFrame(Phaser.Utils.Array.GetRandom(this.clothingOptions.shoes));
         armor.setFrame(Phaser.Utils.Array.GetRandom(this.clothingOptions.armor));
