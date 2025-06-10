@@ -21,6 +21,32 @@ class Load extends Phaser.Scene {
         this.load.image("tilemap_tiles", "roguelikeSheet_transparent.png");
         this.load.tilemapTiledJSON("maizecraft-map", "maizecraft-map.tmj");
 
+        //load rune sprites
+        //default rune
+        this.load.image("cooldownRune1", "Runes/Grey/Rectangle-(outline)/runeGrey_rectangleOutline_036.png");
+        // LEVEL 1 RUNES
+        this.load.setPath("./assets/Runes/Grey/Rectangle-(outline)/");
+        this.load.image("cooldownRune1", "runeGrey_rectangleOutline_033.png");
+        this.load.image("damageRune1", "runeGrey_rectangleOutline_027.png");
+        this.load.image("rangeRune1", "runeGrey_rectangleOutline_003.png");
+        this.load.image("fireRune1", "runeGrey_rectangleOutline_014.png");
+        this.load.image("frostRune1", "runeGrey_rectangleOutline_023.png");
+        // LEVEL 2 RUNES
+        this.load.setPath("./assets/Runes/Black/Rectangle-(outline)/");
+        this.load.image("cooldownRune2", "runeBlack_rectangleOutline_033.png");
+        this.load.image("damageRune2", "runeBlack_rectangleOutline_027.png");
+        this.load.image("rangeRune2", "runeBlack_rectangleOutline_003.png");
+        this.load.image("fireRune2", "runeBlack_rectangleOutline_014.png");
+        this.load.image("frostRune2", "runeBlack_rectangleOutline_023.png");
+        // LEVEL 3 RUNES
+        this.load.setPath("./assets/Runes/Blue/Rectangle-(outline)/");
+        this.load.image("cooldownRune3", "runeBlue_rectangleOutline_033.png");
+        this.load.image("damageRune3", "runeBlue_rectangleOutline_027.png");
+        this.load.image("rangeRune3", "runeBlue_rectangleOutline_003.png");
+        this.load.image("fireRune3", "runeBlue_rectangleOutline_014.png");
+        this.load.image("frostRune3", "runeBlue_rectangleOutline_023.png");
+        //fix path
+        this.load.setPath("./assets/");
 
     }
 
