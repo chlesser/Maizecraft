@@ -84,6 +84,9 @@ class Pathfinder extends Phaser.Scene {
         //delete later
         this.keys = this.input.keyboard.addKeys('R,D,P');
         this.pointer = this.input.activePointer;
+
+        //Test Rune Spawn
+        this.rune = new Rune('frost', 1, this, 100, 100, 'defaultRune');
     }
 
     update() {
