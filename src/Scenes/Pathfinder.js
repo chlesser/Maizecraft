@@ -14,6 +14,9 @@ class Pathfinder extends Phaser.Scene {
         this.SCALE = 2.0;
         this.TILEWIDTH = 40;
         this.TILEHEIGHT = 25;
+
+        //list of placed turrets
+        this.turrets = [];
     }
 
     preload() {
@@ -24,6 +27,7 @@ class Pathfinder extends Phaser.Scene {
         // Initialize properties
         this.placeMode = false;
         this.currentTurret = null;
+        
 
         //Initialize tilemap 
         this.map = this.add.tilemap("maizecraft-map", this.TILESIZE, this.TILESIZE);
@@ -52,7 +56,6 @@ class Pathfinder extends Phaser.Scene {
                 walkableTiles.push(i);
             }
         }
-
         // get path start and end points
         this.pathEndpoints = this.getPathEndpoints();
 
@@ -343,20 +346,6 @@ class Pathfinder extends Phaser.Scene {
     }
 
     /*
-        isPlaceable
-        Input --> Takes in a tile index
-        Output ---> Boolean
-        Description --> This function checks if a tile is obstructed by checking its properties.
-            If the tile has no properties or the walkway property is not set, it returns true (obstructed).
-            Otherwise, it returns false (not obstructed).
-    */
-
-    isPlaceable(tileIndex) {
-        const properties = this.tileset.getTileProperties(tileIndex);
-        return !(properties || properties.walkway);
-    }
-
-    /*
         HandlePlaceMode
         Input --> Takes in a turret object
         Output ---> null
@@ -367,22 +356,42 @@ class Pathfinder extends Phaser.Scene {
     */
 
     handlePlacemode(hero) {
-        if (hero != null) {
-                hero.x = Math.floor((this.pointer.worldX / this.TILESIZE) + 0.5) * this.TILESIZE;
-                hero.y = Math.floor((this.pointer.worldY / this.TILESIZE) + 0.5) * this.TILESIZE;
-                hero.setVisible(true);
-        }
+        //First, identify the x and y coordinates of the tile under the pointer
+        const tileX = Math.floor(this.pointer.worldX / this.TILESIZE);
+        const tileY = Math.floor(this.pointer.worldY / this.TILESIZE);
 
-        if (this.pointer.isDown) {
-            const tileX = Math.floor(this.pointer.worldX / this.TILESIZE);
-            const tileY = Math.floor(this.pointer.worldY / this.TILESIZE);
-            const tileIndex = this.map.getTileAt(tileX, tileY, true, this.groundLayer);
-            console.log((this.tileset.getTileProperties(tileIndex.index)).walkway)
-            if (tileIndex) { // Check if the tile exists empty
-                hero.x = (tileX + 0.5) * this.TILESIZE;
-                hero.y = (tileY + 0.5) * this.TILESIZE;
-                this.currentTurret = null; // Clear current hero reference
-                this.placeMode = false; // Exit place mode after placing
+        //next, we get the tile index of the tile at the pointer position for each of the three layers
+        const tileIndex = this.map.getTileAt(tileX, tileY, true, this.groundLayer);
+        const tileIndex2 = this.map.getTileAt(tileX, tileY, true, this.pathLayer);
+        const tileIndex3 = this.map.getTileAt(tileX, tileY, true, this.treesLayer);
+
+        //first, we make sure we were given an actual turret object
+        if (hero != null) {
+            //then, we set the xy to snap to a tile
+            hero.x = (tileX + 0.5) * this.TILESIZE;
+            hero.y = (tileY + 0.5) * this.TILESIZE;
+            //also, the hero is now visible
+            hero.setVisible(true);
+
+            //finally, we start to detect if the cursor is pressed
+            if (this.pointer.isDown) {
+                //first off, let's get a bool to see if that tile is occupied.
+                for(const friend of this.turrets) {
+                    if (friend.turret.tileX === tileX && friend.turret.tileY === tileY) {
+                        this.flashRed(hero); // Flash red to indicate failure
+                        return; // Exit if the tile is already occupied
+                    }
+                }
+                //we make sure there is a tile on the first layer, and not the second or third layer
+                if (tileIndex && (tileIndex2.index == -1 && tileIndex3.index == -1)) { // Check if the tile exists empty
+                    this.currentTurret = null; // Clear current hero reference
+                    this.placeMode = false; // Exit place mode after placing
+                    hero.turret.tileX = tileX; // Set turret's tile position
+                    hero.turret.tileY = tileY; // Set turret's tile position
+                    this.turrets.push(hero); // Add turret to the list of placed turrets
+                } else {
+                    this.flashRed(hero); // Flash red to indicate failure
+                }
             }
         }
     }
