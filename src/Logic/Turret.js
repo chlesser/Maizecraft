@@ -76,6 +76,7 @@ class Turret {
         This section is for adding runes to the turret.
             The first step is to ensure a sane level, and that the rune count is not exceeded.
             The second step is to update the current stats based on the rune type.
+            Returns success or failure.
     */
     addRune(level, runeType) {
         console.log(`Attempting to add ${runeType} rune of level ${level} to turret of type ${this.type}`);
@@ -83,7 +84,7 @@ class Turret {
             this.upgradePotential = true; // Allow for higher level rune to be added
         }
         if(!this.ensureSanity(level)) {
-            return;
+            return false;
         }
 
         //because we are upgrading, we do not increment runeCount
@@ -94,106 +95,105 @@ class Turret {
         }
         switch (runeType) {
             case 'cooldown':
-                this.addCooldownRune(level);
-                break;
+                return this.addCooldownRune(level);
             case 'damage':
-                this.addDamageRune(level);
-                break;
+                return this.addDamageRune(level);
             case 'range':
-                this.addRangeRune(level);
-                break;
+                return this.addRangeRune(level);
             case 'fire':
-                this.addFireRune(level);
-                break;
+                return this.addFireRune(level);
             case 'frost':
-                this.addFrostRune(level);
-                break;
+                return this.addFrostRune(level);
             default:
                 console.error('Unknown rune type:', runeType);
+                return false;
         }
-        
-        console.log(`Added ${runeType} rune of level ${level}. Current rune count: ${this.runeCount}`);
     }
     addCooldownRune(level) {
         if(level <= this.runes.cooldown) {
             console.error('No use in adding this.');
             this.runeCount--; // Decrement rune count if no upgrade is made
-            return;
+            return false;
         }
         this.runes.cooldown = level;
         switch (level) {
             case 1:
                 this.currentCooldown = this.baseCooldown * .75;
-                break;
+                return true;
             case 2:
                 this.currentCooldown = this.baseCooldown * .50;
-                break;
+                return true;
             case 3:
                 this.currentCooldown = this.baseCooldown * .25;
-                break;
+                return true;
             default:
                 console.error('Invalid cooldown rune level. Must be between 1 and 3.');
+                return false;
         }
     }
     addDamageRune(level) {
         if(level <= this.runes.damage) {
             console.error('No use in adding this.');
             this.runeCount--; // Decrement rune count if no upgrade is made
-            return;
+            return false;
         }
         this.runes.damage = level;
         switch (level) {
             case 1:
                 this.currentDamage = this.baseDamage * 2.5;
-                break;
+                return true;
             case 2:
                 this.currentDamage = this.baseDamage * 5;
-                break;
+                return true;
             case 3:
                 this.currentDamage = this.baseDamage * 10;
-                break;
+                return true;
             default:
                 console.error('Invalid cooldown rune level. Must be between 1 and 3.');
+                return false;
         }
     }
     addRangeRune(level) {
         if(level <= this.runes.range) {
             console.error('No use in adding this.');
             this.runeCount--; // Decrement rune count if no upgrade is made
-            return;
+            return false;
         }
         this.runes.range = level;
         switch (level) {
             case 1:
                 this.currentRange = this.baseRange * 1.5;
-                break;
+                return true;
             case 2:
                 this.currentRange = this.baseRange * 3;
-                break;
+                return true;
             case 3:
                 this.currentRange = this.baseRange * 6;
-                break;
+                return true;
             default:
                 console.error('Invalid cooldown rune level. Must be between 1 and 3.');
+                return false;
         }
     }
     addFireRune(level) {
         if(level <= this.runes.fire) {
             console.error('No use in adding this.');
             this.runeCount--; // Decrement rune count if no upgrade is made
-            return;
+            return false;
         }
         this.runes.fire = level;
         this.fireStack = level;
+        return true;
     }
     addFrostRune(level) {
         if(level <= this.runes.frost) {
             console.error('No use in adding this.');
             this.runeCount--; // Decrement rune count if no upgrade is made
-            return;
+            return false;
         }
         this.runes.frost = level;
         this.frostStack = level;
+        return true;
     }
     //This function returns a boolean indicating whether the rune was successfully added
     ensureSanity(level) {
