@@ -8,7 +8,8 @@ let config = {
     // 40 x 25 tiles, 16px tiles
     width: 1280,
     height: 800,
-    scene: [Load, Pathfinder]
+    scene: [Load, Pathfinder],
+    disableContextMenu: true
 }
 
 var cursors;
