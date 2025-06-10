@@ -30,8 +30,9 @@ class Pathfinder extends Phaser.Scene {
 
     create() {
         // Initialize properties
-        this.mode.PLACE = false;
+        this.modeReset();
         this.currentTurret = null;
+        this.currentRune = null;
         
         //Initialize tilemap 
         this.map = this.add.tilemap("maizecraft-map", this.TILESIZE, this.TILESIZE);
@@ -94,11 +95,11 @@ class Pathfinder extends Phaser.Scene {
         this.input.on('pointerdown', (pointer) => {
             if(pointer.rightButtonDown()) {
                 this.modeReset();
-                if(currentTurret != null) {
+                if(this.currentTurret != null) {
                     this.currentTurret.destroy();
                     this.currentTurret = null;
                 }
-                if(currentRune != null) {
+                if(this.currentRune != null) {
                     this.currentRune.destroy();
                     this.currentRune = null;
                 }
@@ -459,7 +460,6 @@ class Pathfinder extends Phaser.Scene {
     */
 
     handleRunemode(rune) {
-        console.log("Handling rune mode...");
         //First, identify the x and y coordinates of the tile under the pointer
         const tileX = Math.floor(this.pointer.worldX / this.TILESIZE);
         const tileY = Math.floor(this.pointer.worldY / this.TILESIZE);
@@ -474,13 +474,13 @@ class Pathfinder extends Phaser.Scene {
                 //we make sure there is a turret at the tile position
                 for(const friend of this.turrets) {
                     if (friend.turret.tileX === tileX && friend.turret.tileY === tileY) {
-                        console.log("Placing rune on turret at tile:", tileX, tileY);
-                        console.log("Rune type:", rune.type, "Level:", rune.level);
-                        friend.turret.addRune(rune.level, rune.type); // Add rune to turret
-                        this.currentRune = null; // Clear current rune reference
-                        this.modeReset(); // Exit rune mode after placing
-                        rune.destroy(); // Remove the rune from the scene
-                        return; // Exit after placing the rune
+                        let executionResult = friend.turret.addRune(rune.level, rune.type);
+                        if(executionResult) {
+                            this.currentRune = null; // Clear current rune reference
+                            this.modeReset(); // Exit rune mode after placing
+                            rune.destroy(); // Remove the rune from the scene
+                            return; // Exit after placing the rune
+                        }
                     }
                 }
             }
