@@ -6,8 +6,13 @@ class Pathfinder extends Phaser.Scene {
         this.npcPool = null;
 
         // modes
-        this.placeMode = false;
+        this.mode = {
+            PLACE: false,
+            RUNE: false,
+            DEFAULT: true
+        }
         this.currentTurret = null;
+        this.currentRune = null;
 
         //map properties
         this.TILESIZE = 16;
@@ -25,7 +30,7 @@ class Pathfinder extends Phaser.Scene {
 
     create() {
         // Initialize properties
-        this.placeMode = false;
+        this.mode.PLACE = false;
         this.currentTurret = null;
         
         //Initialize tilemap 
@@ -84,25 +89,47 @@ class Pathfinder extends Phaser.Scene {
         //delete later
         this.keys = this.input.keyboard.addKeys('R,D,P');
         this.pointer = this.input.activePointer;
-
-        //Test Rune Spawn
-        this.rune = new Rune('frost', 1, this, 100, 100, 'defaultRune');
+        
+        //Right click to reset mode and destroy current turret/rune
+        this.input.on('pointerdown', (pointer) => {
+            if(pointer.rightButtonDown()) {
+                this.modeReset();
+                if(currentTurret != null) {
+                    this.currentTurret.destroy();
+                    this.currentTurret = null;
+                }
+                if(currentRune != null) {
+                    this.currentRune.destroy();
+                    this.currentRune = null;
+                }
+            }
+        })
     }
-
     update() {
         /*delete later*/
         if (Phaser.Input.Keyboard.JustDown(this.keys.P)) {
             // place turret test
-            if (this.placeMode) {
-                this.placeMode = false;
-            } else {
+            if (this.mode.DEFAULT) {
                 // toggle place mode and generate an NPC that hugs the cursor
                 this.currentTurret = this.spawnTurret('warrior'); // Example turret type
-                this.placeMode = true;
+                this.modeReset('PLACE');
             }
         }
-        if(this.placeMode) {
+        if (Phaser.Input.Keyboard.JustDown(this.keys.R)) {
+            // place rune test
+            if (this.mode.DEFAULT) {
+                // toggle place mode and generate an NPC that hugs the cursor
+                this.currentRune = this.spawnRune(); // Example turret type
+                this.modeReset('RUNE');
+            }
+        }
+        //HANDLE GLOBAL MODE UPDATING
+        if(this.mode.PLACE)
+        {
             this.handlePlacemode(this.currentTurret);
+        }
+        else if (this.mode.RUNE) {
+            this.handleRunemode(this.currentRune);
         }
     }
 
@@ -187,6 +214,21 @@ class Pathfinder extends Phaser.Scene {
             // });
         });
         return npc;
+    }
+    /*
+        SpawnRune spawns a rune of a random type and a random level, at 100, 100.
+        Input --> None
+        Output --> Rune
+    */
+    spawnRune() {
+        const types = ['cooldown', 'damage', 'range', 'fire', 'frost'];
+        const levels = [1, 2, 3];
+        const type = Phaser.Utils.Array.GetRandom(types);
+        const level = Phaser.Utils.Array.GetRandom(levels);
+
+        const rune = new Rune(type, level, this, 100, 100, 'defaultRune');
+        this.currentRune = rune;
+        return rune;
     }
 
 
@@ -338,6 +380,26 @@ class Pathfinder extends Phaser.Scene {
     }
 
     /*
+        modeReset simply sets all modes to false, aside from the one passed in.
+    */
+
+    modeReset(newMode) {
+        for (const mode in this.mode) {
+            this.mode[mode] = false;
+        }
+        switch (newMode) {
+            case 'PLACE':
+                this.mode.PLACE = true;
+                break;
+            case 'RUNE':
+                this.mode.RUNE = true;
+                break;
+            default:
+                this.mode.DEFAULT = true;
+        }
+    }
+
+    /*
         HandlePlaceMode
         Input --> Takes in a turret object
         Output ---> null
@@ -377,12 +439,49 @@ class Pathfinder extends Phaser.Scene {
                 //we make sure there is a tile on the first layer, and not the second or third layer
                 if (tileIndex && (tileIndex2.index == -1 && tileIndex3.index == -1)) { // Check if the tile exists empty
                     this.currentTurret = null; // Clear current hero reference
-                    this.placeMode = false; // Exit place mode after placing
+                    this.modeReset();
                     hero.turret.tileX = tileX; // Set turret's tile position
                     hero.turret.tileY = tileY; // Set turret's tile position
                     this.turrets.push(hero); // Add turret to the list of placed turrets
                 } else {
                     this.flashRed(hero); // Flash red to indicate failure
+                }
+            }
+        }
+    }
+    /*
+        HandlePlaceMode
+        Input --> Takes in a rune class object
+        Output ---> null
+        Description --> This function is only called when runeMode is active.
+            It checks if the pointer is down and if the pointer position is on a tile with a turret.
+            If so, it adds the rune to the turret's rune list and exits rune mode.
+    */
+
+    handleRunemode(rune) {
+        console.log("Handling rune mode...");
+        //First, identify the x and y coordinates of the tile under the pointer
+        const tileX = Math.floor(this.pointer.worldX / this.TILESIZE);
+        const tileY = Math.floor(this.pointer.worldY / this.TILESIZE);
+
+        if(rune != null) {
+            //then, we set the xy to snap to a tile
+            rune.x = (tileX + 0.5) * this.TILESIZE;
+            rune.y = (tileY + 0.5) * this.TILESIZE;
+
+            //finally, we start to detect if the cursor is pressed
+            if (this.pointer.isDown) {
+                //we make sure there is a turret at the tile position
+                for(const friend of this.turrets) {
+                    if (friend.turret.tileX === tileX && friend.turret.tileY === tileY) {
+                        console.log("Placing rune on turret at tile:", tileX, tileY);
+                        console.log("Rune type:", rune.type, "Level:", rune.level);
+                        friend.turret.addRune(rune.level, rune.type); // Add rune to turret
+                        this.currentRune = null; // Clear current rune reference
+                        this.modeReset(); // Exit rune mode after placing
+                        rune.destroy(); // Remove the rune from the scene
+                        return; // Exit after placing the rune
+                    }
                 }
             }
         }
