@@ -76,8 +76,31 @@ class Turret {
             The first step is to ensure a sane level, and that the rune count is not exceeded.
             The second step is to update the current stats based on the rune type.
     */
+    addRune(level, runeType) {
+        if(!this.ensureSanity(level)) {
+            return;
+        }
+        switch (runeType) {
+            case 'cooldown':
+                this.addCooldownRune(level);
+                break;
+            case 'damage':
+                this.addDamageRune(level);
+                break;
+            case 'range':
+                this.addRangeRune(level);
+                break;
+            case 'fire':
+                this.addFireRune(level);
+                break;
+            case 'frost':
+                this.addFrostRune(level);
+                break;
+            default:
+                console.error('Unknown rune type:', runeType);
+        }
+    }
     addCooldownRune(level) {
-        this.ensureSanity(level);
         if(level <= this.runes.cooldown) {
             console.error('No use in adding this.');
             return;
@@ -98,7 +121,6 @@ class Turret {
         }
     }
     addDamageRune(level) {
-        this.ensureSanity(level);
         if(level <= this.runes.damage) {
             console.error('No use in adding this.');
             return;
@@ -119,7 +141,6 @@ class Turret {
         }
     }
     addRangeRune(level) {
-        this.ensureSanity(level);
         if(level <= this.runes.range) {
             console.error('No use in adding this.');
             return;
@@ -140,7 +161,6 @@ class Turret {
         }
     }
     addFireRune(level) {
-        this.ensureSanity(level);
         if(level <= this.runes.fire) {
             console.error('No use in adding this.');
             return;
@@ -149,7 +169,6 @@ class Turret {
         this.fireStack = level;
     }
     addFrostRune(level) {
-        this.ensureSanity(level);
         if(level <= this.runes.frost) {
             console.error('No use in adding this.');
             return;
