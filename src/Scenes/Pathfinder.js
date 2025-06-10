@@ -28,7 +28,6 @@ class Pathfinder extends Phaser.Scene {
         this.placeMode = false;
         this.currentTurret = null;
         
-
         //Initialize tilemap 
         this.map = this.add.tilemap("maizecraft-map", this.TILESIZE, this.TILESIZE);
         if (!this.map) {
@@ -89,16 +88,6 @@ class Pathfinder extends Phaser.Scene {
 
     update() {
         /*delete later*/
-        if (Phaser.Input.Keyboard.JustDown(this.keys.R)) {
-            this.spawnNPC();
-        }
-
-        if (Phaser.Input.Keyboard.JustDown(this.keys.D)) {
-            const activeNpcs = this.npcPool.getChildren().filter(npc => npc.active);
-            if (activeNpcs.length > 0) {
-                this.despawnNPC(activeNpcs[0]);
-            }
-        }
         if (Phaser.Input.Keyboard.JustDown(this.keys.P)) {
             // place turret test
             if (this.placeMode) {
