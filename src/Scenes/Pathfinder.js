@@ -942,9 +942,9 @@ class Pathfinder extends Phaser.Scene {
             .setScrollFactor(0);
 
         // Button spacing settings
-        const iconSpacing = 64;
-        const startX = this.map.widthInPixels/2 + (9 * this.TILESIZE);
-        const y = this.map.heightInPixels/2 + (19 * this.TILESIZE);
+        const iconSpacing = 48;
+        const startX = this.map.widthInPixels/2 + (7.5 * this.TILESIZE);
+        const y = this.map.heightInPixels/2 + (19.5 * this.TILESIZE);
 
         // Turret types
         const turretTypes = ['archer', 'warrior', 'wizard'];

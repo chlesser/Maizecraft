@@ -53,6 +53,7 @@ class Load extends Phaser.Scene {
         this.load.image('warriorIcon', 'popcorn.png');
         this.load.image('wizardIcon', 'candycorn.png');
         this.load.image('runeIcon', 'brick.png');
+        this.load.image('backSprite', 'back.png')
 
         //fix path
         this.load.setPath("./assets/");
