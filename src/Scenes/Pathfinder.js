@@ -80,22 +80,16 @@ class Pathfinder extends Phaser.Scene {
 
         //so sorry gang i went and did it this way...
         this.pathPoints = [
-            { x: (0) * this.TILESIZE, y: (10) * this.TILESIZE },    // Point 1
-            { x: (6) * this.TILESIZE, y: (10) * this.TILESIZE },   // Point 2
-            { x: (6) * this.TILESIZE, y: (4) * this.TILESIZE },   // Point 3
-            { x: (14) * this.TILESIZE, y: (4) * this.TILESIZE },   // Point 4
-            { x: (14) * this.TILESIZE, y: (16) * this.TILESIZE },  // Point 5
-            { x: (4) * this.TILESIZE, y: (16) * this.TILESIZE },  // Point 6
-            { x: (4) * this.TILESIZE, y: (22) * this.TILESIZE },  // Point 7
-            { x: (29) * this.TILESIZE, y: (22) * this.TILESIZE },  // Point 8
-            { x: (29) * this.TILESIZE, y: (16) * this.TILESIZE },   // Point 9
-            { x: (23) * this.TILESIZE, y: (16) * this.TILESIZE },   // Point 10
-            { x: (23) * this.TILESIZE, y: (10) * this.TILESIZE },   // Point 11
-            { x: (28) * this.TILESIZE, y: (10) * this.TILESIZE },  // Point 12
-            { x: (28) * this.TILESIZE, y: (5) * this.TILESIZE },  // Point 13
-            { x: (35) * this.TILESIZE, y: (5) * this.TILESIZE },  // Point 14
-            { x: (35) * this.TILESIZE, y: (11) * this.TILESIZE },   // Point 15
-            { x: (40) * this.TILESIZE, y: (11) * this.TILESIZE }   // Point 16
+            { x: (0) * this.TILESIZE, y: (9) * this.TILESIZE },    // Point 1
+            { x: (9) * this.TILESIZE, y: (9) * this.TILESIZE },   // Point 2
+            { x: (9) * this.TILESIZE, y: (15) * this.TILESIZE },   // Point 3
+            { x: (17) * this.TILESIZE, y: (15) * this.TILESIZE },   // Point 4
+            { x: (17) * this.TILESIZE, y: (3) * this.TILESIZE },  // Point 5
+            { x: (25) * this.TILESIZE, y: (3) * this.TILESIZE },  // Point 6
+            { x: (25) * this.TILESIZE, y: (15) * this.TILESIZE },  // Point 7
+            { x: (33) * this.TILESIZE, y: (15) * this.TILESIZE },  // Point 8
+            { x: (33) * this.TILESIZE, y: (9) * this.TILESIZE },   // Point 9
+            { x: (40) * this.TILESIZE, y: (9) * this.TILESIZE },   // Point 10
         ];
         
         this.currentPathIndex = 0;
@@ -180,25 +174,25 @@ class Pathfinder extends Phaser.Scene {
 
         startWave() {
             if (this.isWaveRunning) return;
-        this.isWaveRunning = true;
-        if (this.spawnInterval) this.spawnInterval.destroy();
-        this.isWaveRunning = true;
+            this.isWaveRunning = true;
+            if (this.spawnInterval) this.spawnInterval.destroy();
+            this.isWaveRunning = true;
 
-        console.log(`Starting Wave ${this.currentWave}`);
+            console.log(`Starting Wave ${this.currentWave}`);
     
-        const powerPoints = Math.pow(2, this.currentWave);
-        const waveType = this.currentWave % 5 || 5;
+            const powerPoints = Math.pow(2, this.currentWave);
+            const waveType = this.currentWave % 5 || 5;
     
-        switch (waveType) {
-        case 1: this.spawnWaveType1(powerPoints); break;
-        case 2: this.spawnWaveType2(powerPoints); break;
-        case 3: this.spawnWaveType3(powerPoints); break;
-        case 4: this.spawnWaveType4(powerPoints); break;
-        case 5: this.spawnWaveType5(powerPoints); break;
+            switch (waveType) {
+            case 1: this.spawnWaveType1(powerPoints); break;
+            case 2: this.spawnWaveType2(powerPoints); break;
+            case 3: this.spawnWaveType3(powerPoints); break;
+            case 4: this.spawnWaveType4(powerPoints); break;
+            case 5: this.spawnWaveType5(powerPoints); break;
+            }
         }
-    }
 
-    spawnWaveType1(powerPoints) {
+        spawnWaveType1(powerPoints) {
         //Wave 1: .1 PP on 10 creatures
         const ppPerEnemy = Math.max(0.1 * powerPoints / 10, 1);
         this.enemiesInWave = 10;
@@ -214,7 +208,7 @@ class Pathfinder extends Phaser.Scene {
         
         //spawn first enemy immediately
         this.spawnEnemy(ppPerEnemy);
-    }
+        }
 
     spawnWaveType2(powerPoints) {
         //Wave 2: .25 PP on 2 creatures, .1 PP on 5 creatures
@@ -502,6 +496,7 @@ class Pathfinder extends Phaser.Scene {
         
         //Mark as enemy for wave system
         enemy.isEnemy = true;
+        enemy.setScale(1.5);
         
         //Calculate enemy stats based on power points
         const stats = {
@@ -519,10 +514,10 @@ class Pathfinder extends Phaser.Scene {
         
         //Visual indication for bosses
         if (isBoss) {
-            enemy.setScale(2.0); //larger size
+            enemy.setScale(2.2); //larger size
         }
         if (miniBoss) {
-            enemy.setScale(1.5); //larger size
+            enemy.setScale(1.8); //larger size
         }
         
         //track enemy death
