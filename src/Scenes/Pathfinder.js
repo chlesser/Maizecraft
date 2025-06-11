@@ -322,9 +322,9 @@ class Pathfinder extends Phaser.Scene {
 
     spawnWaveType5(powerPoints) {
         //Wave 5
-        this.enemiesInWave = 1;
         const bossPP = Math.max(0.75 * powerPoints, 1);
-        
+        this.enemiesInWave = 1;
+
         //spawn boss
         this.spawnEnemy(bossPP, true, false);
     }
