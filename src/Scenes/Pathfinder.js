@@ -934,13 +934,7 @@ class Pathfinder extends Phaser.Scene {
     /*------- Tina's UI Corner -------*/
     createUI() {
         // UI bar background - replace with asset later
-        this.uiBar = this.add.rectangle(
-            this.map.widthInPixels/2 + this.TILESIZE,
-            this.map.heightInPixels/2 + (18 * this.TILESIZE),
-            this.map.widthInPixels - 32, 
-            this.map.heightInPixels - (19 * this.TILESIZE), 
-            0x222222, 
-            0.5)
+        this.uiBar = this.add.sprite(this.map.widthInPixels/2, this.map.heightInPixels/2 + (18 * this.TILESIZE), 'backSprite')
             .setDepth(100)
             .setOrigin(0, 0)
             .setScrollFactor(0);
