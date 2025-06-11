@@ -19,7 +19,7 @@ class Pathfinder extends Phaser.Scene {
 
         //logic
         this.cornfieldhealth = 10
-        this.corn = 0;
+        this.corn = 100;
 
         //shop costs
         this.shopCosts = {
@@ -817,6 +817,30 @@ class Pathfinder extends Phaser.Scene {
                 this.mode.DEFAULT = true;
         }
     }
+    /*
+        Helper function gets a cost from a type
+    */
+    getCost(type) {
+        switch (type) {
+            case 'warrior':
+                return this.shopCosts.warrior;
+            case 'archer':
+                return this.shopCosts.archer;
+            case 'wizard':
+                return this.shopCosts.wizard;
+            case 'refresh':
+                return this.shopCosts.refresh;
+            case 'level1':
+                return this.shopCosts.level1;
+            case 'level2':
+                return this.shopCosts.level2;
+            case 'level3':
+                return this.shopCosts.level3;
+            default:
+                console.warn("Unknown turret type");
+                return 0;
+        }
+    }
 
     /*
         HandlePlaceMode
@@ -977,8 +1001,8 @@ class Pathfinder extends Phaser.Scene {
             const x = startX + i * iconSpacing;
 
             //creating how much each costs
-            
-            let shopCornText = this.add.text(x - 2, y + 16, `🌽${this.shopCosts.warrior}`, {
+            let cost = this.getCost(type);
+            let shopCornText = this.add.text(x - 2, y + 16, `🌽${cost}`, {
                     fontSize: '12px',
                     fill: '#fff',
                     stroke: '#000',
@@ -992,20 +1016,35 @@ class Pathfinder extends Phaser.Scene {
                 .setScrollFactor(0)
                 .setDepth(101)
                 .on('pointerdown', () => {
-                    button.setScale(0.8); // Scale down on click
-                    shopCornText.setScale(0.8); // Scale down the corn text
-                    if(this.mode.DEFAULT) {
-                        this.currentTurret = this.spawnTurret(type);
-                        this.modeReset('PLACE');
-                        console.log(`Spawned turret of type: ${type}`);
+                    if(this.corn < cost) {
+                        //shake the button if not enough corn
+                        this.tweens.add({
+                            targets: [button, shopCornText],
+                            x: button.x + 5,
+                            duration: 100,
+                            yoyo: true,
+                            ease: 'Back.easeIn',
+                            onComplete: () => {
+                            }
+                        });
+                    } else {
+                        button.setScale(0.8); // Scale down on click
+                        shopCornText.setScale(0.8); // Scale down the corn text
+                        this.corn -= cost; // Deduct corn
+                        this.updateCornCounter(-cost); // Update corn counter with negative value
+                        if(this.mode.DEFAULT) {
+                            this.currentTurret = this.spawnTurret(type);
+                            this.modeReset('PLACE');
+                            console.log(`Spawned turret of type: ${type}`);
+                        }
+                        this.tweens.add({
+                            targets: [button, shopCornText],
+                            scaleX: 1,
+                            scaleY: 1,
+                            duration: 150,
+                            ease: 'Back.easeOut'
+                        });
                     }
-                    this.tweens.add({
-                        targets: [button, shopCornText],
-                        scaleX: 1,
-                        scaleY: 1,
-                        duration: 150,
-                        ease: 'Back.easeOut'
-                    });
                 });
 
         });
