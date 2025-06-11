@@ -165,7 +165,6 @@ class Pathfinder extends Phaser.Scene {
         else if (this.mode.RUNE) {
             this.handleRunemode(this.currentRune);
         }
-
     }
 
 
