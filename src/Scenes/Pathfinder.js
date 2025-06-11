@@ -26,6 +26,7 @@ class Pathfinder extends Phaser.Scene {
         this.waveSet = 5; //each set contains 5 waves
         this.spawnInterval = null;
         this.enemiesInWave = 0;
+        this.killedEnemies = 0;
         
         //enemy stats
         this.enemyStats = {
@@ -98,6 +99,12 @@ class Pathfinder extends Phaser.Scene {
         this.clothingOptions = {
             bodies: [0, 1, 54, 55, 108, 109], //162 and 163 are green
             orcbodies: [162, 163],
+            warriorArmor: this.generateWarriorArmorFrames(),
+            archerArmor: this.generateArcherArmorFrames(),
+            wizardArmor: this.generateWizardArmorFrames(),
+            weapons: this.generateWeaponFrames(),
+            bows: this.generateBowFrames(),
+            staffs: this.generateStaffFrames(),
             drawls: this.generateDrawlsFrames(),
             shoes: this.generateShoesFrames(),
             armor: this.generateArmorFrames(),
@@ -135,7 +142,7 @@ class Pathfinder extends Phaser.Scene {
             // place turret test
             if (this.mode.DEFAULT) {
                 // toggle place mode and generate an NPC that hugs the cursor
-                this.currentTurret = this.spawnTurret('warrior'); // Example turret type
+                this.currentTurret = this.spawnTurret('wizard'); // Example turret type
                 this.modeReset('PLACE');
             }
         }
@@ -164,11 +171,6 @@ class Pathfinder extends Phaser.Scene {
             {
                 hero.turret.update(this.enemies); // Update each turret's logic
             }
-            // for(let enemy of this.enemies) {
-            //     if (enemy.stats.health <= 0) {
-            //         this.enemyDefeated(enemy);
-            //     }
-            // }
         }
     }
 
@@ -202,7 +204,7 @@ class Pathfinder extends Phaser.Scene {
         this.enemiesInWave = 10;
         
         this.spawnInterval = this.time.addEvent({
-            delay: 1000,
+            delay: 1200,
             callback: () => {
                 this.spawnEnemy(ppPerEnemy);
             },
@@ -222,7 +224,7 @@ class Pathfinder extends Phaser.Scene {
         
         //spawn strong enemies
         this.time.addEvent({
-            delay: 1000,
+            delay: 1200,
             callback: () => {
                 this.spawnEnemy(strongPP);
             },
@@ -318,9 +320,9 @@ class Pathfinder extends Phaser.Scene {
             this.corn += enemy.stats.corn;
             console.log(`Enemy defeated! Awarded ${enemy.stats.corn} corn`);
         } 
+        this.killedEnemies++;
         this.enemies.splice(this.enemies.indexOf(enemy), 1); // Remove from enemies list
         this.despawnNPC(enemy);
-        console.log(`Enemy defeated! Remaining enemies: ${this.enemies.length}`);
         enemy.destroy(); // Destroy the enemy object
     
         if (this.isWaveRunning) {
@@ -329,7 +331,7 @@ class Pathfinder extends Phaser.Scene {
     }
 
     checkWaveComplete() {
-    if (this.enemies.length === 0) {
+    if (this.enemies.length === 0 && this.killedEnemies >= this.enemiesInWave) {
         this.isWaveRunning = false;
         this.waveComplete();
         }
@@ -338,6 +340,8 @@ class Pathfinder extends Phaser.Scene {
     waveComplete() {
         console.log(`Wave ${this.currentWave} complete!`);
     this.isWaveRunning = false;
+    this.killedEnemies = 0; // Reset killed enemies count
+    this.enemiesInWave = 0; // Reset enemies in wave count
     
     // Cleanup (spawnInterval might still exist for wave types 2/3/4)
     if (this.spawnInterval) this.spawnInterval.destroy();
@@ -405,13 +409,26 @@ class Pathfinder extends Phaser.Scene {
                 drawls: this.add.sprite(0, 0, 'chars', 0).setVisible(false),
                 shoes: this.add.sprite(0, 0, 'chars', 0).setVisible(false),
                 armor: this.add.sprite(0, 0, 'chars', 0).setVisible(false),
-                wig: this.add.sprite(0, 0, 'chars', 0).setVisible(false)
+                wig: this.add.sprite(0, 0, 'chars', 0).setVisible(false),
+                item: this.add.sprite(0, 0, 'chars', 0).setVisible(false) // Turret item sprite
             };
             npc.add(Object.values(npc.sprites));
         }
 
         //set location and randomize
-        this.randomizeNPC(npc);
+        switch (type) {
+            case 'warrior':
+                this.randomizeWarrior(npc);
+                break;
+            case 'archer':
+                this.randomizeArcher(npc);
+                break;
+            case 'wizard':
+                this.randomizeWizard(npc);
+                break;
+            default:
+                this.randomizeNPC(npc);
+        }
         const turret = new Turret(type);
         turret.tileSize = this.TILESIZE; // Set tile size based on scale
         npc.turret = turret;
@@ -421,11 +438,6 @@ class Pathfinder extends Phaser.Scene {
         this.time.delayedCall(50, () => {
             Object.values(npc.sprites).forEach(sprite => sprite.setVisible(true));
             npc.setVisible(true);
-            
-            //Start movement after another brief delay
-            // this.time.delayedCall(Phaser.Math.Between(500, 1500), () => {
-            //     this.assignPathfinding(npc);
-            // });
         });
         return npc;
     }
@@ -520,14 +532,29 @@ class Pathfinder extends Phaser.Scene {
         }
         
         //track enemy death
-        enemy.deathAction = () => {
-            this.enemyDefeated(enemy);
+        enemy.takeDamage = (damage) => {
+            this.enemyHit(enemy, damage);
         };
-        // enemy.on('perish', () => {
-        //     this.enemyDefeated(enemy);
-        // });
         this.enemies.push(enemy);
         return enemy;
+    }
+    enemyHit(enemy, damage) {
+        if (!enemy.isEnemy) return; // Ignore if not an enemy
+        
+        enemy.stats.health -= damage;
+        console.log(`Enemy hit! Remaining health: ${enemy.stats.health}`);
+        
+        if (enemy.stats.health <= 0) {
+            this.enemyDefeated(enemy);
+        } else {
+            this.flashRed(enemy); // Flash red to indicate damage
+            // Optionally, you can add a visual effect or sound here
+            console.log("Enemy still alive, health: " + enemy.stats.health);
+        }
+    }
+    flashRed(npc) {
+        // Flash the NPC red to indicate damage
+        console.log("Flashing red for NPC: ", npc);
     }
 
     layersToGrid(layers) {
@@ -552,7 +579,9 @@ class Pathfinder extends Phaser.Scene {
         this.npcPool.killAndHide(npc);
     }
 
-
+    /*
+        these sections choose the desired frame for the clothing item.
+    */
     randomizeNPC(npc) { //wow!
         const {body, drawls, shoes, armor, wig} = npc.sprites;
         body.setFrame(Phaser.Utils.Array.GetRandom(this.clothingOptions.bodies));
@@ -560,6 +589,45 @@ class Pathfinder extends Phaser.Scene {
         shoes.setFrame(Phaser.Utils.Array.GetRandom(this.clothingOptions.shoes));
         armor.setFrame(Phaser.Utils.Array.GetRandom(this.clothingOptions.armor));
         wig.setFrame(Phaser.Utils.Array.GetRandom(this.clothingOptions.wig));
+        //npc.setScale(Phaser.Math.Between(0, 1) ? -1 : 1, 1);
+        npc.setScale(this.TURRET_SCALE)
+    }
+
+    randomizeWarrior(npc) { //wow!
+        const {body, drawls, shoes, armor, wig, item} = npc.sprites;
+        body.setFrame(Phaser.Utils.Array.GetRandom(this.clothingOptions.bodies));
+        drawls.setFrame(Phaser.Utils.Array.GetRandom(this.clothingOptions.drawls));
+        shoes.setFrame(Phaser.Utils.Array.GetRandom(this.clothingOptions.shoes));
+        armor.setFrame(Phaser.Utils.Array.GetRandom(this.clothingOptions.warriorArmor));
+        wig.setFrame(Phaser.Utils.Array.GetRandom(this.clothingOptions.wig));
+        //randomize weapon
+        item.setFrame(Phaser.Utils.Array.GetRandom(this.clothingOptions.weapons));
+        //npc.setScale(Phaser.Math.Between(0, 1) ? -1 : 1, 1);
+        npc.setScale(this.TURRET_SCALE)
+    }
+
+    randomizeArcher(npc) { //wow!
+        const {body, drawls, shoes, armor, wig, item} = npc.sprites;
+        body.setFrame(Phaser.Utils.Array.GetRandom(this.clothingOptions.bodies));
+        drawls.setFrame(Phaser.Utils.Array.GetRandom(this.clothingOptions.drawls));
+        shoes.setFrame(Phaser.Utils.Array.GetRandom(this.clothingOptions.shoes));
+        armor.setFrame(Phaser.Utils.Array.GetRandom(this.clothingOptions.archerArmor));
+        wig.setFrame(Phaser.Utils.Array.GetRandom(this.clothingOptions.wig));
+        //randomize bow
+        item.setFrame(Phaser.Utils.Array.GetRandom(this.clothingOptions.bows));
+        //npc.setScale(Phaser.Math.Between(0, 1) ? -1 : 1, 1);
+        npc.setScale(this.TURRET_SCALE)
+    }
+
+    randomizeWizard(npc) { //wow!
+        const {body, drawls, shoes, armor, wig, item} = npc.sprites;
+        body.setFrame(Phaser.Utils.Array.GetRandom(this.clothingOptions.bodies));
+        drawls.setFrame(Phaser.Utils.Array.GetRandom(this.clothingOptions.drawls));
+        shoes.setFrame(Phaser.Utils.Array.GetRandom(this.clothingOptions.shoes));
+        armor.setFrame(Phaser.Utils.Array.GetRandom(this.clothingOptions.wizardArmor));
+        wig.setFrame(Phaser.Utils.Array.GetRandom(this.clothingOptions.wig));
+        //randomize staff
+        item.setFrame(Phaser.Utils.Array.GetRandom(this.clothingOptions.staffs));
         //npc.setScale(Phaser.Math.Between(0, 1) ? -1 : 1, 1);
         npc.setScale(this.TURRET_SCALE)
     }
@@ -574,6 +642,9 @@ class Pathfinder extends Phaser.Scene {
         npc.setScale(Phaser.Math.Between(0, 1) ? -1 : 1, 1);
     }
 
+    /*
+        These generation sections are used to get an array that exclusively holds the frames for the desired clothing item.
+    */
 
     generateDrawlsFrames() {
         const drawls = [];
@@ -621,6 +692,81 @@ class Pathfinder extends Phaser.Scene {
         }
     
         return wigFrames;
+    }
+    generateWarriorArmorFrames() {
+        const keyFrames = [];
+    
+        for (let row = 4; row < 10; row+=5) {
+            const rowStart = row * 54;
+            for (let col = 6; col <= 17; col++) {
+                keyFrames.push(rowStart + col);
+            }
+        }
+    
+        return keyFrames;
+    }
+    generateArcherArmorFrames() {
+        const keyFrames = [];
+    
+        for (let row = 1; row < 10; row+=5) {
+            const rowStart = row * 54;
+            for (let col = 6; col <= 17; col++) {
+                keyFrames.push(rowStart + col);
+            }
+        }
+    
+        return keyFrames;
+    }
+    generateWizardArmorFrames() {
+        const keyFrames = [];
+    
+        for (let row = 2; row < 10; row+=5) {
+            const rowStart = row * 54;
+            for (let col = 6; col <= 17; col++) {
+                if((col - 6) % 4 <= 1) {
+                    keyFrames.push(rowStart + col);
+                }
+            }
+        }
+    
+        return keyFrames;
+    }
+    generateWeaponFrames() {
+        const keyFrames = [];
+    
+        for (let row = 0; row < 10; row++) {
+            const rowStart = row * 54;
+            for (let col = 42; col <= 51; col++) {
+                if(col <= 46 && row <= 3) continue; // Skip the first 4 rows for weapons, keeping columns 46-51
+                keyFrames.push(rowStart + col);
+            }
+        }
+    
+        return keyFrames;
+    }
+    generateBowFrames() {
+        const keyFrames = [];
+    
+        for (let row = 0; row < 5; row++) {
+            const rowStart = row * 54;
+            for (let col = 52; col <= 53; col++) {
+                keyFrames.push(rowStart + col);
+            }
+        }
+    
+        return keyFrames;
+    }
+    generateStaffFrames() {
+        const keyFrames = [];
+    
+        for (let row = 0; row <= 3; row++) {
+            const rowStart = row * 54;
+            for (let col = 42; col <= 46; col++) {
+                keyFrames.push(rowStart + col);
+            }
+        }
+    
+        return keyFrames;
     }
 
     /*
@@ -681,6 +827,7 @@ class Pathfinder extends Phaser.Scene {
                 for(const friend of this.turrets) {
                     if (friend.turret.tileX === scaledX && friend.turret.tileY === scaledY)
                     {
+                        this.flashRed(hero); // Flash red to indicate tile is occupied
                         return; // Exit if the tile is already occupied
                     }
                 }
@@ -693,6 +840,8 @@ class Pathfinder extends Phaser.Scene {
                     hero.turret.realX = hero.x; // Set turret's real position
                     hero.turret.realY = hero.y; // Set turret's real position
                     this.turrets.push(hero); // Add turret to the list of placed turrets
+                } else {
+                    this.flashRed(hero); // Flash red to indicate tile is occupied
                 }
             } else {
                 for(const friend of this.turrets) {
@@ -735,6 +884,11 @@ class Pathfinder extends Phaser.Scene {
             //finally, we start to detect if the cursor is pressed
             if (this.pointer.isDown) {
                 //we make sure there is a turret at the tile position
+                if(this.turrets.length === 0) {
+                    this.flashRed(rune); // Flash red to indicate no turrets available
+                    console
+                    return; // Exit if no turrets are available
+                }
                 for(const friend of this.turrets) {
                     if (friend.turret.tileX === scaledX && friend.turret.tileY === scaledY) {
                         let executionResult = friend.turret.addRune(rune);
@@ -743,7 +897,11 @@ class Pathfinder extends Phaser.Scene {
                             this.currentRune = null; // Clear current rune reference
                             this.modeReset(); // Exit rune mode after placing
                             return; // Exit after placing the rune
+                        } else {
+                            this.flashRed(rune); // Flash red to indicate tile is occupied
                         }
+                    } else {
+                        this.flashRed(rune); // Flash red to indicate tile is occupied
                     }
                 }
             } else {
