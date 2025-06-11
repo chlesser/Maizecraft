@@ -190,11 +190,11 @@ class Pathfinder extends Phaser.Scene {
             const waveType = this.currentWave % 5 || 5;
     
             switch (waveType) {
-            case 1: this.spawnWaveType1(powerPoints); break;
-            case 2: this.spawnWaveType2(powerPoints); break;
-            case 3: this.spawnWaveType3(powerPoints); break;
-            case 4: this.spawnWaveType4(powerPoints); break;
-            case 5: this.spawnWaveType5(powerPoints); break;
+                case 1: this.spawnWaveType1(powerPoints); break;
+                case 2: this.spawnWaveType2(powerPoints); break;
+                case 3: this.spawnWaveType3(powerPoints); break;
+                case 4: this.spawnWaveType4(powerPoints); break;
+                case 5: this.spawnWaveType5(powerPoints); break;
             }
         }
 
@@ -1013,8 +1013,8 @@ class Pathfinder extends Phaser.Scene {
                 ease: 'Cubic.easeOut',
                 onComplete: () => floatText.destroy()
             });
+        }
     }
-}
 
 
 }
