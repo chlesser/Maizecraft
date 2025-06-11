@@ -965,8 +965,8 @@ class Pathfinder extends Phaser.Scene {
 
         // Button spacing settings
         const iconSpacing = 52;
-        const startX = this.map.widthInPixels/2 + (7.25 * this.TILESIZE);
-        const y = this.map.heightInPixels/2 + (19.5 * this.TILESIZE);
+        const startX = this.map.widthInPixels/2 + (8.75 * this.TILESIZE);
+        const y = this.map.heightInPixels/2 + (21.5 * this.TILESIZE);
 
         // Turret types
         const turretTypes = ['warrior', 'archer', 'wizard'];
@@ -976,19 +976,38 @@ class Pathfinder extends Phaser.Scene {
             const iconKey = `${type}Icon`; 
             const x = startX + i * iconSpacing;
 
+            //creating how much each costs
+            
+            let shopCornText = this.add.text(x - 2, y + 16, `🌽${this.shopCosts.warrior}`, {
+                    fontSize: '12px',
+                    fill: '#fff',
+                    stroke: '#000',
+                    strokeThickness: 4,
+                }).setScrollFactor(0).setDepth(102).setOrigin(0.5, 0.5);
+            
             const button = this.add.image(x, y, iconKey)
                 .setDisplaySize(48, 64)  
                 .setInteractive()
-                .setOrigin(0, 0)
+                .setOrigin(0.5, 0.5)
                 .setScrollFactor(0)
                 .setDepth(101)
                 .on('pointerdown', () => {
+                    button.setScale(0.8); // Scale down on click
+                    shopCornText.setScale(0.8); // Scale down the corn text
                     if(this.mode.DEFAULT) {
                         this.currentTurret = this.spawnTurret(type);
                         this.modeReset('PLACE');
                         console.log(`Spawned turret of type: ${type}`);
                     }
+                    this.tweens.add({
+                        targets: [button, shopCornText],
+                        scaleX: 1,
+                        scaleY: 1,
+                        duration: 150,
+                        ease: 'Back.easeOut'
+                    });
                 });
+
         });
 
     }
