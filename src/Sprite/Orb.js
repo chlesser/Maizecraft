@@ -1,6 +1,6 @@
 class Orb extends Phaser.GameObjects.Sprite {
     //using an object in contructor to allow for optional parameters
-    constructor({scene, x, y, texture = 'orbTexture', frame = null, damage = 1, enemy = null, flyTime = 350}) {   
+    constructor({scene, x, y, texture = 'orbTexture', frame = null, damage = 1, enemy = null, flyTime = 300}) {   
         super(scene, x, y, texture, frame);
         this.scene = scene;
         this.damage = damage; // Damage dealt by the orb

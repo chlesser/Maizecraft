@@ -142,7 +142,7 @@ class Pathfinder extends Phaser.Scene {
             // place turret test
             if (this.mode.DEFAULT) {
                 // toggle place mode and generate an NPC that hugs the cursor
-                this.currentTurret = this.spawnTurret('archer'); // Example turret type
+                this.currentTurret = this.spawnTurret('wizard'); // Example turret type
                 this.modeReset('PLACE');
             }
         }
