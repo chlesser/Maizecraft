@@ -7,6 +7,9 @@ class Arrow extends Phaser.GameObjects.Sprite {
         this.enemy = enemy; // The enemy that the arrow will target
         this.flyTime = flyTime; // Time it takes for the arrow to reach the enemy
         this.setOrigin(0.5, 0.5); // Set the origin to the center of the sprite
+        this.setScale(0.025); // Scale down the arrow for better visibility
+        //rotation towards the enemy
+        this.rotation = Phaser.Math.Angle.Between(x, y, enemy.x, enemy.y) + Phaser.Math.DegToRad(90); // Adjusting for the arrow's sprite orientation
         this.scene.add.existing(this);
 
         this.scene.tweens.add({

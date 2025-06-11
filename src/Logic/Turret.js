@@ -87,7 +87,7 @@ class Turret {
                 x: this.realX,
                 y: this.realY,
                 enemy: enemy,
-                flyTime: 150 + (Math.random() * 100), // Randomize flight time slightly
+                flyTime: 450 + (Math.random() * 100), // Randomize flight time slightly
                 damage: this.currentDamage
             });
         }

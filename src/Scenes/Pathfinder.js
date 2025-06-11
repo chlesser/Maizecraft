@@ -542,19 +542,17 @@ class Pathfinder extends Phaser.Scene {
         if (!enemy.isEnemy) return; // Ignore if not an enemy
         
         enemy.stats.health -= damage;
-        console.log(`Enemy hit! Remaining health: ${enemy.stats.health}`);
         
         if (enemy.stats.health <= 0) {
             this.enemyDefeated(enemy);
         } else {
             this.flashRed(enemy); // Flash red to indicate damage
             // Optionally, you can add a visual effect or sound here
-            console.log("Enemy still alive, health: " + enemy.stats.health);
         }
     }
     flashRed(npc) {
-        // Flash the NPC red to indicate damage
-        console.log("Flashing red for NPC: ", npc);
+        // Flash the sprite red to indicate damage
+
     }
 
     layersToGrid(layers) {

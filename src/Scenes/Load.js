@@ -48,6 +48,10 @@ class Load extends Phaser.Scene {
         //fix path
         this.load.setPath("./assets/");
 
+        //My beautiful projectiles
+        this.load.image("arrowTexture", "Imported/Arrow.png");
+        this.load.image("orbTexture", "Imported/orb.png");
+
     }
 
     create() {
