@@ -430,6 +430,7 @@ class Pathfinder extends Phaser.Scene {
             default:
                 this.randomizeNPC(npc);
         }
+        npc.setDepth(500); // Ensure turrets are drawn above other sprites
         const turret = new Turret(type, this);
         turret.tileSize = this.TILESIZE; // Set tile size based on scale
         npc.turret = turret;
@@ -840,6 +841,7 @@ class Pathfinder extends Phaser.Scene {
                     hero.turret.tileY = scaledY; // Set turret's tile position
                     hero.turret.realX = hero.x; // Set turret's real position
                     hero.turret.realY = hero.y; // Set turret's real position
+                    hero.setDepth(1); // Ensure turrets are drawn above other sprites
                     this.turrets.push(hero); // Add turret to the list of placed turrets
                 } else {
                     this.flashRed(hero); // Flash red to indicate tile is occupied
@@ -936,11 +938,11 @@ class Pathfinder extends Phaser.Scene {
 
         // Button spacing settings
         const iconSpacing = 48;
-        const startX = this.map.widthInPixels/2 + (7.5 * this.TILESIZE);
+        const startX = this.map.widthInPixels/2 + (8 * this.TILESIZE);
         const y = this.map.heightInPixels/2 + (19.5 * this.TILESIZE);
 
         // Turret types
-        const turretTypes = ['archer', 'warrior', 'wizard'];
+        const turretTypes = ['warrior', 'archer', 'wizard'];
 
         // make a button for each turret type
         turretTypes.forEach((type, i) => {
@@ -948,7 +950,7 @@ class Pathfinder extends Phaser.Scene {
             const x = startX + i * iconSpacing;
 
             const button = this.add.image(x, y, iconKey)
-                .setDisplaySize(48, 48)  
+                .setDisplaySize(32, 32)  
                 .setInteractive()
                 .setOrigin(0, 0)
                 .setScrollFactor(0)
