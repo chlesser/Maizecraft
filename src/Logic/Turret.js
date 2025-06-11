@@ -105,13 +105,13 @@ class Turret {
             case 'frost':
                 return this.addFrostRune(level);
             default:
-                console.error('Unknown rune type:', runeType);
+                console.log('Unknown rune type:', runeType);
                 return false;
         }
     }
     addCooldownRune(level) {
         if(level <= this.runes.cooldown) {
-            console.error('No use in adding this.');
+            console.log('No use in adding this.');
             this.runeCount--; // Decrement rune count if no upgrade is made
             return false;
         }
@@ -127,13 +127,13 @@ class Turret {
                 this.currentCooldown = this.baseCooldown * .25;
                 return true;
             default:
-                console.error('Invalid cooldown rune level. Must be between 1 and 3.');
+                console.log('Invalid cooldown rune level. Must be between 1 and 3.');
                 return false;
         }
     }
     addDamageRune(level) {
         if(level <= this.runes.damage) {
-            console.error('No use in adding this.');
+            console.log('No use in adding this.');
             this.runeCount--; // Decrement rune count if no upgrade is made
             return false;
         }
@@ -149,7 +149,7 @@ class Turret {
                 this.currentDamage = this.baseDamage * 10;
                 return true;
             default:
-                console.error('Invalid cooldown rune level. Must be between 1 and 3.');
+                console.log('Invalid cooldown rune level. Must be between 1 and 3.');
                 return false;
         }
     }
@@ -171,13 +171,13 @@ class Turret {
                 this.currentRange = this.baseRange * 6;
                 return true;
             default:
-                console.error('Invalid cooldown rune level. Must be between 1 and 3.');
+                console.log('Invalid cooldown rune level. Must be between 1 and 3.');
                 return false;
         }
     }
     addFireRune(level) {
         if(level <= this.runes.fire) {
-            console.error('No use in adding this.');
+            console.log('No use in adding this.');
             this.runeCount--; // Decrement rune count if no upgrade is made
             return false;
         }
@@ -187,7 +187,7 @@ class Turret {
     }
     addFrostRune(level) {
         if(level <= this.runes.frost) {
-            console.error('No use in adding this.');
+            console.log('No use in adding this.');
             this.runeCount--; // Decrement rune count if no upgrade is made
             return false;
         }
@@ -203,12 +203,12 @@ class Turret {
 
         //First, ensure that the level is valid and that the rune count does not exceed the maximum allowed
         if (level < MINLEVEL || level > MAXLEVEL) {
-            console.error('Invalid rune level. Must be between 1 and 3.');
+            console.log('Invalid rune level. Must be between 1 and 3.');
             return false;
         }
         //Secondly, ensure that the rune count does not exceed the maximum allowed
         if (this.runeCount >= MAXRUNES && !this.upgradePotential) {
-            console.error('Maximum rune count exceeded. Cannot add more runes.');
+            console.log('Maximum rune count exceeded. Cannot add more runes.');
             return false;
         }
         return true;

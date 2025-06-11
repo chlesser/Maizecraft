@@ -4,7 +4,7 @@ class Pathfinder extends Phaser.Scene {
 
         // npc pool
         this.npcPool = null;
-        this.TURRET_SCALE = 2.0; // Scale for turret sprites
+        this.TURRET_SCALE = 2; // Scale for turret sprites
 
         // modes
         this.mode = {
@@ -572,7 +572,8 @@ class Pathfinder extends Phaser.Scene {
         shoes.setFrame(Phaser.Utils.Array.GetRandom(this.clothingOptions.shoes));
         armor.setFrame(Phaser.Utils.Array.GetRandom(this.clothingOptions.armor));
         wig.setFrame(Phaser.Utils.Array.GetRandom(this.clothingOptions.wig));
-        npc.setScale(Phaser.Math.Between(0, 1) ? -1 : 1, 1);
+        //npc.setScale(Phaser.Math.Between(0, 1) ? -1 : 1, 1);
+        npc.setScale(this.TURRET_SCALE)
     }
 
     randomizeOrc(npc) { //same thing just green
@@ -676,9 +677,12 @@ class Pathfinder extends Phaser.Scene {
 
         //first, we make sure we were given an actual turret object
         if (hero != null) {
+            //we need to convert based off the scale size
+            let scaledX = ((Math.trunc(tileX / this.TURRET_SCALE) + 0.5) * this.TILESIZE * this.TURRET_SCALE);
+            let scaledY = ((Math.trunc(tileY / this.TURRET_SCALE) + 0.5) * this.TILESIZE * this.TURRET_SCALE);
             //then, we set the xy to snap to a tile
-            hero.x = (tileX + 0.5) * this.TILESIZE;
-            hero.y = (tileY + 0.5) * this.TILESIZE;
+            hero.x = scaledX;
+            hero.y = scaledY;
             //also, the hero is now visible
             hero.setVisible(true);
 
@@ -695,8 +699,8 @@ class Pathfinder extends Phaser.Scene {
                 if (tileIndex && tileIndex2.index == -1 && tileIndex3.index == -1) { // Check if the tile exists empty
                     this.currentTurret = null; // Clear current hero reference
                     this.modeReset();
-                    hero.turret.tileX = tileX; // Set turret's tile position
-                    hero.turret.tileY = tileY; // Set turret's tile position
+                    hero.turret.tileX = scaledX; // Set turret's tile position
+                    hero.turret.tileY = scaledY; // Set turret's tile position
                     this.turrets.push(hero); // Add turret to the list of placed turrets
                 }
             }
@@ -717,15 +721,18 @@ class Pathfinder extends Phaser.Scene {
         const tileY = Math.floor(this.pointer.worldY / this.TILESIZE);
 
         if(rune != null) {
+            //we need to convert based off the scale size
+            let scaledX = ((Math.trunc(tileX / this.TURRET_SCALE) + 0.5) * this.TILESIZE * this.TURRET_SCALE);
+            let scaledY = ((Math.trunc(tileY / this.TURRET_SCALE) + 0.5) * this.TILESIZE * this.TURRET_SCALE);
             //then, we set the xy to snap to a tile
-            rune.x = (tileX + 0.5) * this.TILESIZE;
-            rune.y = (tileY + 0.5) * this.TILESIZE;
+            rune.x = scaledX;
+            rune.y = scaledY;
 
             //finally, we start to detect if the cursor is pressed
             if (this.pointer.isDown) {
                 //we make sure there is a turret at the tile position
                 for(const friend of this.turrets) {
-                    if (friend.turret.tileX === tileX && friend.turret.tileY === tileY) {
+                    if (friend.turret.tileX === scaledX && friend.turret.tileY === scaledY) {
                         let executionResult = friend.turret.addRune(rune.level, rune.type);
                         if(executionResult) {
                             this.currentRune = null; // Clear current rune reference
