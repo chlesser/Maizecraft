@@ -32,7 +32,6 @@ class Pathfinder extends Phaser.Scene {
             level3: 500,
         }
         
-        
         this.currentWave = 1;
         this.waveSet = 5; //each set contains 5 waves
         this.spawnInterval = null;
