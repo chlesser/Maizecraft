@@ -49,9 +49,9 @@ class Load extends Phaser.Scene {
         // load in UI assets
         // TEMP TIL I GET ACTUAL ICONS
         this.load.setPath("./assets/UI/");
-        this.load.image('archerIcon', 'Bow.png');
-        this.load.image('warriorIcon', 'Sword.png');
-        this.load.image('wizardIcon', 'Eye.png');
+        this.load.image('archerIcon', 'bowEditAttempt.png');
+        this.load.image('warriorIcon', 'swordEditAttempt.png');
+        this.load.image('wizardIcon', 'eyeEditAttempt.png');
         this.load.image('runeIcon', 'brick.png');
         this.load.image('backSprite', 'back.png')
 
