@@ -4,6 +4,7 @@ class Pathfinder extends Phaser.Scene {
 
         // npc pool
         this.npcPool = null;
+        this.TURRET_SCALE = 2.0; // Scale for turret sprites
 
         // modes
         this.mode = {
@@ -14,6 +15,8 @@ class Pathfinder extends Phaser.Scene {
         this.currentTurret = null;
         this.currentRune = null;
 
+
+        //logic
         this.cornfieldhealth = 10
         this.corn = 0;
         

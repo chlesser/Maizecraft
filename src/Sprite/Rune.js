@@ -2,7 +2,7 @@ class Rune extends Phaser.GameObjects.Sprite {
     constructor(type, level, scene, x, y, texture, frame) {
         super(scene, x, y, texture, frame);
         this.setOrigin(0.5, 0.5);
-        this.setScale(0.5);
+        this.setScale(0.3);
         this.setDepth(1);
         this.type = type; // Type of rune (e.g., 'cooldown', 'damage', 'range', 'frost')
         this.level = level; // Level of the rune (1, 2, or 3)
