@@ -26,9 +26,9 @@ class Pathfinder extends Phaser.Scene {
             warrior: 50,
             archer: 100,
             wizard: 300,
-            refresh: 50,
+            refresh: 25,
             level1: 50,
-            level2: 250,
+            level2: 200,
             level3: 500,
         }
         
@@ -169,14 +169,6 @@ class Pathfinder extends Phaser.Scene {
     }
 
     update() {
-        if (Phaser.Input.Keyboard.JustDown(this.keys.R)) {
-            // place rune test
-            if (this.mode.DEFAULT) {
-                // toggle place mode and generate an NPC that hugs the cursor
-                this.currentRune = this.spawnRune(); // Example turret type
-                this.modeReset('RUNE');
-            }
-        }
         if (Phaser.Input.Keyboard.JustDown(this.keys.D)) {
             this.startWave();
         }
@@ -478,6 +470,7 @@ class Pathfinder extends Phaser.Scene {
         const level = Phaser.Utils.Array.GetRandom(levels);
 
         const rune = new Rune(type, level, this, 100, 100, 'defaultRune');
+        rune.setDepth(500);
         this.currentRune = rune;
         return rune;
     }
@@ -945,6 +938,7 @@ class Pathfinder extends Phaser.Scene {
                         //this is upon success
                         if(executionResult) {
                             this.currentRune = null; // Clear current rune reference
+                            this.currentRune.setDepth(3);
                             this.modeReset(); // Exit rune mode after placing
                             return; // Exit after placing the rune
                         } else {
@@ -985,7 +979,7 @@ class Pathfinder extends Phaser.Scene {
 
         // Button spacing settings
         const iconSpacing = 52;
-        const startX = this.map.widthInPixels/2 + (8.75 * this.TILESIZE);
+        const startX = this.map.widthInPixels/2 + (2.75 * this.TILESIZE);
         const y = this.map.heightInPixels/2 + (21.5 * this.TILESIZE);
 
         // Turret types
@@ -1024,26 +1018,77 @@ class Pathfinder extends Phaser.Scene {
                             }
                         });
                     } else {
-                        button.setScale(0.8); // Scale down on click
-                        shopCornText.setScale(0.8); // Scale down the corn text
-                        this.updateCornCounter(-cost); // Update corn counter with negative value
                         if(this.mode.DEFAULT) {
+                            button.setScale(0.8); // Scale down on click
+                            shopCornText.setScale(0.8); // Scale down the corn text
+                            this.updateCornCounter(-cost); // Update corn counter with negative value
                             this.currentTurret = this.spawnTurret(type);
                             this.modeReset('PLACE');
                             console.log(`Spawned turret of type: ${type}`);
-                        }
-                        this.tweens.add({
+                            this.tweens.add({
                             targets: [button, shopCornText],
                             scaleX: 1,
                             scaleY: 1,
                             duration: 150,
                             ease: 'Back.easeOut'
                         });
+                        }
                     }
                 });
-
         });
+        // May RNGesus forgive me for not making this modular
 
+        //Rune Section
+        for(let i = 0; i < 5; i++) {
+            const iconKey = `runeBackground`; 
+            const newIconSpacing = 50; // Spacing for rune icons
+            const x = startX + (12 * this.TILESIZE) + i * newIconSpacing;
+
+            //creating how much each costs
+            let cost = 0;
+            let shopCornText = this.add.text(x - 2, y + 16, `🌽${cost}`, {
+                    fontSize: '12px',
+                    fill: '#fff',
+                    stroke: '#000',
+                    strokeThickness: 4,
+                }).setScrollFactor(0).setDepth(102).setOrigin(0.5, 0.5);
+            
+            const button = this.add.image(x, y, iconKey)
+                .setDisplaySize(44, 64)  
+                .setInteractive()
+                .setOrigin(0.5, 0.5)
+                .setScrollFactor(0)
+                .setDepth(101)
+                .on('pointerdown', () => {
+                    if(this.corn < cost) {
+                        //shake the button if not enough corn
+                        this.tweens.add({
+                            targets: [button, shopCornText],
+                            x: button.x + 5,
+                            duration: 100,
+                            yoyo: true,
+                            ease: 'Back.easeIn',
+                            onComplete: () => {
+                            }
+                        });
+                    } else {
+                        if(this.mode.DEFAULT) {
+                            button.setScale(0.8); // Scale down on click
+                            shopCornText.setScale(0.8); // Scale down the corn text
+                            this.updateCornCounter(-cost); // Update corn counter with negative value
+                            this.currentRune = this.spawnRune(); // Example turret type
+                            this.modeReset('RUNE');
+                            this.tweens.add({
+                            targets: [button, shopCornText],
+                            scaleX: 1,
+                            scaleY: 1,
+                            duration: 150,
+                            ease: 'Back.easeOut'
+                        });
+                        }
+                    }
+                });
+        }
     }
 
     createCornCounter() {
