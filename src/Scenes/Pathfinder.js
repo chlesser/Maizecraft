@@ -169,23 +169,6 @@ class Pathfinder extends Phaser.Scene {
     }
 
     update() {
-        /*delete later*/
-        if (Phaser.Input.Keyboard.JustDown(this.keys.P)) {
-            // place turret test
-            if (this.mode.DEFAULT) {
-                // toggle place mode and generate an NPC that hugs the cursor
-                this.currentTurret = this.spawnTurret('wizard'); // Example turret type
-                this.modeReset('PLACE');
-            }
-        }
-        if (Phaser.Input.Keyboard.JustDown(this.keys.R)) {
-            // place rune test
-            if (this.mode.DEFAULT) {
-                // toggle place mode and generate an NPC that hugs the cursor
-                this.currentRune = this.spawnRune(); // Example turret type
-                this.modeReset('RUNE');
-            }
-        }
         if (Phaser.Input.Keyboard.JustDown(this.keys.D)) {
             this.startWave();
         }
