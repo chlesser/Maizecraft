@@ -145,6 +145,15 @@ class Pathfinder extends Phaser.Scene {
     }
 
     update() {
+        /*delete later*/
+        if (Phaser.Input.Keyboard.JustDown(this.keys.P)) {
+            // place turret test
+            if (this.mode.DEFAULT) {
+                // toggle place mode and generate an NPC that hugs the cursor
+                this.currentTurret = this.spawnTurret('wizard'); // Example turret type
+                this.modeReset('PLACE');
+            }
+        }
         if (Phaser.Input.Keyboard.JustDown(this.keys.R)) {
             // place rune test
             if (this.mode.DEFAULT) {
@@ -186,7 +195,7 @@ class Pathfinder extends Phaser.Scene {
 
             console.log(`Starting Wave ${this.currentWave}`);
     
-            const powerPoints = (2 * this.currentWave) + 3;
+            const powerPoints = 2 * this.currentWave
             const waveType = this.currentWave % 5 || 5;
     
             switch (waveType) {
@@ -199,9 +208,14 @@ class Pathfinder extends Phaser.Scene {
         }
 
         spawnWaveType1(powerPoints) {
-        //Wave 1: .1 PP on 10 creatures
+        //Wave 1:
+        
         const ppPerEnemy = Math.max(0.1 * powerPoints / 10, 1);
-        this.enemiesInWave = 10;
+        if (this.currentWave == 1){
+            this.enemiesInWave = 1;
+        }else{
+            this.enemiesInWave = 10;
+        }
         
         this.spawnInterval = this.time.addEvent({
             delay: 1200,
@@ -211,17 +225,13 @@ class Pathfinder extends Phaser.Scene {
             callbackScope: this,
             repeat: this.enemiesInWave - 1
         });
-        
-        //spawn first enemy immediately
-        this.spawnEnemy(ppPerEnemy);
         }
 
-    spawnWaveType2(powerPoints) {
-        //Wave 2: .25 PP on 2 creatures, .1 PP on 5 creatures
+        spawnWaveType2(powerPoints) {
+        //Wave 2
         const strongPP = Math.max(0.25 * powerPoints / 2, 1);
         const weakPP = Math.max(0.1 * powerPoints / 5, 1);
         this.enemiesInWave = 7; // 2 strong + 5 weak
-        
         //spawn strong enemies
         this.time.addEvent({
             delay: 1200,
@@ -244,14 +254,13 @@ class Pathfinder extends Phaser.Scene {
                     callbackScope: this,
                     repeat: 4
                 });
-                this.spawnEnemy(weakPP); //first weak enemy
             },
             callbackScope: this
         });
     }
 
     spawnWaveType3(powerPoints) {
-        //Wave 3 (Miniboss): .5 PP on a creature, .1 PP on 5 creatures
+        //Wave 3 (Miniboss)
         const bossPP = Math.max(0.5 * powerPoints, 1);
         const minionPP = Math.max(0.1 * powerPoints / 5, 1);
         this.enemiesInWave = 6; // 1 boss + 5 minions
@@ -271,15 +280,15 @@ class Pathfinder extends Phaser.Scene {
                     callbackScope: this,
                     repeat: 4
                 });
-                this.spawnEnemy(minionPP); // First minion
             },
             callbackScope: this
         });
     }
 
     spawnWaveType4(powerPoints) {
-        //Wave 4 (Horde): .02 PP on each creature
-        const enemyCount = Math.min(Math.floor(powerPoints / 0.02), 50); 
+        //Wave 4 (Horde)
+        //const enemyCount = Math.min(Math.floor(powerPoints / 0.02), 50); 
+        const enemyCount = 10;
         const ppPerEnemy = Math.max(0.02 * powerPoints, 1);
     
         //set the total enemies for this wave
@@ -289,9 +298,6 @@ class Pathfinder extends Phaser.Scene {
         if (this.spawnInterval) {
             this.spawnInterval.destroy();
         }
-    
-        //spawn first enemy immediately
-        this.spawnEnemy(ppPerEnemy);
     
         //spawn remaining enemies with interval
         if (enemyCount > 1) {
@@ -307,7 +313,7 @@ class Pathfinder extends Phaser.Scene {
 }
 
     spawnWaveType5(powerPoints) {
-        //Wave 5 (Boss): .75 PP on a single creature
+        //Wave 5
         const bossPP = Math.max(0.75 * powerPoints, 1);
         
         //spawn boss
@@ -340,22 +346,22 @@ class Pathfinder extends Phaser.Scene {
 
     waveComplete() {
         console.log(`Wave ${this.currentWave} complete!`);
-    this.isWaveRunning = false;
-    this.killedEnemies = 0; // Reset killed enemies count
-    this.enemiesInWave = 0; // Reset enemies in wave count
+        this.isWaveRunning = false;
+        this.killedEnemies = 0; // Reset killed enemies count
+        this.enemiesInWave = 0; // Reset enemies in wave count
     
-    // Cleanup (spawnInterval might still exist for wave types 2/3/4)
-    if (this.spawnInterval) this.spawnInterval.destroy();
+        // Cleanup (spawnInterval might still exist for wave types 2/3/4)
+        if (this.spawnInterval) this.spawnInterval.destroy();
     
-    this.currentWave++;
-    if (this.currentWave % 5 === 1) this.waveSet++;
+        this.currentWave++;
+        if (this.currentWave % 5 === 1) this.waveSet++;
     
-    // Start next wave after delay
-    this.time.delayedCall(5000, () => {
+        // Start next wave after delay
+        this.time.delayedCall(5000, () => {
         if (!this.isWaveRunning && this.scene) { // Safety checks
             this.startWave();
         }
-    }, [], this);
+        }, [], this);
     }
 
 
@@ -492,16 +498,20 @@ class Pathfinder extends Phaser.Scene {
     //handle enemies reaching the end
     enemyReachedEnd(npc) {
         console.log("Enemy reached the end!");
-        console.log(this.enemies.indexOf(npc));
-        
+    
+        //count this as a killed enemy (even though they reached the end)
+        this.killedEnemies++;
+    
         //reduce corn field health
         this.cornfieldhealth -= npc.stats ? npc.stats.damage : 1;
-        console.log("damage " + npc.stats.damage);
-        console.log(this.cornfieldhealth);
-        
+        console.log(`Cornfield health: ${this.cornfieldhealth}`);
+    
         this.despawnNPC(npc);
-        this.enemies.splice(this.enemies.indexOf(npc), 1); // Remove from enemies list
-        npc.destroy(); // Destroy the enemy object
+        this.enemies.splice(this.enemies.indexOf(npc), 1);
+        npc.destroy();
+    
+        console.log(`Enemies defeated: ${this.killedEnemies}/${this.enemiesInWave}`); // Debug
+    
         this.checkWaveComplete();
     }
 
