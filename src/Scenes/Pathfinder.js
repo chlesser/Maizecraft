@@ -683,7 +683,6 @@ class Pathfinder extends Phaser.Scene {
                 //first off, let's get a bool to see if that tile is occupied.
                 for(const friend of this.turrets) {
                     if (friend.turret.tileX === tileX && friend.turret.tileY === tileY) {
-                        this.flashRed(hero); // Flash red to indicate failure
                         return; // Exit if the tile is already occupied
                     }
                 }
@@ -694,8 +693,6 @@ class Pathfinder extends Phaser.Scene {
                     hero.turret.tileX = tileX; // Set turret's tile position
                     hero.turret.tileY = tileY; // Set turret's tile position
                     this.turrets.push(hero); // Add turret to the list of placed turrets
-                } else {
-                    this.flashRed(hero); // Flash red to indicate failure
                 }
             }
         }
