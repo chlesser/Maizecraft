@@ -1,10 +1,12 @@
 class Turret {
-    constructor(type) {
+    constructor(type, scene = null) {
         //basestats
         this.baseDamage = 1;
         this.baseRange = 1;
         this.baseCooldown = 1000; // in milliseconds
         this.type = type;
+
+        this.scene = scene; // Reference to the scene, if needed
 
 
         //current stats
@@ -48,6 +50,7 @@ class Turret {
             return; // Still in cooldown, do not attack
         }
         this.lastShotTime = now;
+
         // Update logic for the turret can be added here
         switch (this.type) {
             case 'warrior':
@@ -65,18 +68,42 @@ class Turret {
         this.searchForEnemy(enemies);
     }
 
+    //class updates
     updateWarrior(enemies) {
         // Warrior turret logic
         let enemiesInRange = this.withinRange(enemies);
         if(enemiesInRange.length > 0) {
             for(let enemy of enemiesInRange) {
-                enemy.stats.health -= this.currentDamage; // Deal damage to the enemy
-                if(enemy.stats.health <= 0) {
-                    enemy.deathAction(); // Trigger perish event if health is 0 or less
-                }
-                this.lastShotTime = 0; // Reset last shot time
-                console.log(`Warrior turret attacked ${enemy.name} for ${this.currentDamage} damage.`);
+                enemy.takeDamage(this.currentDamage); // Deal damage to the enemy
             }
+        }
+    }
+    updateArcher(enemies) {
+        // Archer turret logic
+        let enemy = this.searchForEnemy(enemies);
+        if(enemy != null) {
+            let arrow = new Arrow({
+                scene: this.scene,
+                x: this.realX,
+                y: this.realY,
+                enemy: enemy,
+                flyTime: 450 + (Math.random() * 100), // Randomize flight time slightly
+                damage: this.currentDamage
+            });
+        }
+    }
+    updateWizard(enemies) {
+        // Wizard turret logic
+        let enemy = this.searchForEnemy(enemies);
+        if(enemy != null) {
+            let orb = new Orb({
+                scene: this.scene,
+                x: this.realX,
+                y: this.realY,
+                enemy: enemy,
+                flyTime: 300 + (Math.random() * 100), // Randomize flight time slightly
+                damage: this.currentDamage
+            });
         }
     }
     /*
@@ -179,12 +206,6 @@ class Turret {
         }
     }
     addCooldownRune(level, incomingRune) {
-        if(level <= this.runes.cooldown) {
-            console.log('No use in adding this.');
-            this.runeCount--; // Decrement rune count if no upgrade is made
-            this.upgradePotential = false; // Reset upgrade potential
-            return false;
-        }
         this.runes.cooldown = level;
         this.addVisualRune(incomingRune); // Add the visual rune to the turret
         switch (level) {
@@ -203,12 +224,6 @@ class Turret {
         }
     }
     addDamageRune(level, incomingRune) {
-        if(level <= this.runes.damage) {
-            console.log('No use in adding this.');
-            this.runeCount--; // Decrement rune count if no upgrade is made
-            this.upgradePotential = false; // Reset upgrade potential
-            return false;
-        }
         this.runes.damage = level;
         this.addVisualRune(incomingRune); // Add the visual rune to the turret
         switch (level) {
@@ -227,12 +242,6 @@ class Turret {
         }
     }
     addRangeRune(level, incomingRune) {
-        if(level <= this.runes.range) {
-            console.error('No use in adding this.');
-            this.runeCount--; // Decrement rune count if no upgrade is made
-            this.upgradePotential = false; // Reset upgrade potential
-            return false;
-        }
         this.runes.range = level;
         this.addVisualRune(incomingRune); // Add the visual rune to the turret
         switch (level) {
@@ -251,29 +260,19 @@ class Turret {
         }
     }
     addFireRune(level, incomingRune) {
-        if(level <= this.runes.fire) {
-            console.log('No use in adding this.');
-            this.runeCount--; // Decrement rune count if no upgrade is made
-            this.upgradePotential = false; // Reset upgrade potential
-            return false;
-        }
         this.runes.fire = level;
         this.fireStack = level;
         this.addVisualRune(incomingRune); // Add the visual rune to the turret
         return true;
     }
     addFrostRune(level, incomingRune) {
-        if(level <= this.runes.frost) {
-            console.log('No use in adding this.');
-            this.runeCount--; // Decrement rune count if no upgrade is made
-            this.upgradePotential = false; // Reset upgrade potential
-            return false;
-        }
         this.runes.frost = level;
         this.frostStack = level;
         this.addVisualRune(incomingRune); // Add the visual rune to the turret
         return true;
     }
+
+
     //This function returns a boolean indicating whether the rune can be added or not.
     ensureSanity(level, runeType) {
         const MAXRUNES = 3;
