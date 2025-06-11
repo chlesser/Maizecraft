@@ -18,8 +18,11 @@ class Turret {
 
         //engine calculations
         this.lastShotTime = 0;  //to track when the last shot was fired
+        this.tileSize = 16;
         this.tileX = 0; // Tile X position
         this.tileY = 0; // Tile Y position
+        this.realX = 0; // Real X position
+        this.realY = 0; // Real Y position
 
         //rune information
         this.runeCount = 0; // Total number of runes
@@ -30,22 +33,77 @@ class Turret {
             fire: 0,
             frost: 0
         }
+        this.runeSprites = [];
         this.upgradePotential = false; //this is strictly used for the sanity check, to allow for the caveat of adding a higher level rune than the current one. 
 
         //update stats based on type using function below
         this.updateStatsByType();
     }
 
-    update() {
+    //search for the closest enemy within range and attack... this differs between turret types
+    update(enemies) {
         // Update logic for the turret can be added here
-        this.searchForEnemy();
+        switch (this.type) {
+            case 'warrior':
+                this.updateWarrior(enemies);
+                break;
+            case 'archer':
+                this.updateArcher(enemies);
+                break;
+            case 'wizard':
+                this.updateWizard(enemies);
+                break;
+            default:
+                console.warn('Unknown turret type:', this.type);
+        }
+        this.searchForEnemy(enemies);
     }
-    searchForEnemy() {
-        // Logic to search for enemies in front of the turret
-        // This could involve checking the direction the turret is facing
-        // and detecting if any enemies are within a certain range.
-        console.log("Searching for enemies in front of the turret...");
+
+    updateWarrior(enemies) {
+        // Warrior turret logic
+        console.log('Updating Warrior turret');
+        let enemiesInRange = this.withinRange(enemies);
+        if(enemiesInRange.length > 0) {
+            for(let enemy of enemiesInRange) {
+                enemy.stats.health -= this.currentDamage; // Deal damage to the enemy
+                console.log(`Warrior turret attacked ${enemy.name} for ${this.currentDamage} damage.`);
+            }
+        }
     }
+    /*
+        Search For Enemy finds the closest enemy within range
+        WithinRange finds all enemies within range
+    */
+    searchForEnemy(enemies) {
+        let closest = null;
+        let closestIndex = Infinity; // Initialize closest distance to a large value
+        for(const enemy of enemies) {
+            let distance = Phaser.Math.Distance.Between(this.realX, this.realY, enemy.x, enemy.y);
+            distance /= this.tileSize; // Scale distance by tile size
+            if(distance < this.currentRange && enemies.indexOf(enemy) <= closestIndex) {
+                closestIndex = enemies.indexOf(enemy);
+                closest = enemy; // Update closest enemy
+            }
+        }
+        console.log(`Closest enemy found: ${closest ? closest.name : 'None'}`);
+        return closest;
+    }
+    withinRange(enemies) {
+        let closest = [];
+        for(const enemy of enemies) {
+            let distance = Phaser.Math.Distance.Between(this.realX, this.realY, enemy.x, enemy.y);
+            distance /= this.tileSize; // Scale distance by tile size
+            console.log(`Distance to ${enemy.name}: ${distance}`);
+            if(distance < this.currentRange) {
+                closest.push(enemy); // Add enemy to the list of enemies within range
+            }
+        }
+        console.log(`Closest enemy found: ${closest ? closest.name : 'None'}`);
+        return closest; // Return the list of enemies within range
+    }
+
+
+    //this is an initialization function that sets the base stats based on the turret type
     updateStatsByType() {
         // Update turret stats based on its type
         switch (this.type) {
@@ -78,44 +136,43 @@ class Turret {
             The second step is to update the current stats based on the rune type.
             Returns success or failure.
     */
-    addRune(level, runeType) {
+    addRune(incomingRune) {
+        const level = incomingRune.level;
+        const runeType = incomingRune.type;
         console.log(`Attempting to add ${runeType} rune of level ${level} to turret of type ${this.type}`);
-        if(this.runes[runeType] < level && this.runes[runeType] > 0) {
-            this.upgradePotential = true; // Allow for higher level rune to be added
-        }
-        if(!this.ensureSanity(level)) {
+        if(!this.ensureSanity(level, runeType)) {
             return false;
         }
 
         //because we are upgrading, we do not increment runeCount
-        if(this.upgradePotential) {
-            this.upgradePotential = false; // Reset after use
-        } else {
+        if(!this.upgradePotential) {
             this.runeCount++; // Increment rune count only if not upgrading
         }
         switch (runeType) {
             case 'cooldown':
-                return this.addCooldownRune(level);
+                return this.addCooldownRune(level, incomingRune);
             case 'damage':
-                return this.addDamageRune(level);
+                return this.addDamageRune(level, incomingRune);
             case 'range':
-                return this.addRangeRune(level);
+                return this.addRangeRune(level, incomingRune);
             case 'fire':
-                return this.addFireRune(level);
+                return this.addFireRune(level, incomingRune);
             case 'frost':
-                return this.addFrostRune(level);
+                return this.addFrostRune(level, incomingRune);
             default:
-                console.error('Unknown rune type:', runeType);
+                console.log('Unknown rune type:', runeType);
                 return false;
         }
     }
-    addCooldownRune(level) {
+    addCooldownRune(level, incomingRune) {
         if(level <= this.runes.cooldown) {
-            console.error('No use in adding this.');
+            console.log('No use in adding this.');
             this.runeCount--; // Decrement rune count if no upgrade is made
+            this.upgradePotential = false; // Reset upgrade potential
             return false;
         }
         this.runes.cooldown = level;
+        this.addVisualRune(incomingRune); // Add the visual rune to the turret
         switch (level) {
             case 1:
                 this.currentCooldown = this.baseCooldown * .75;
@@ -127,17 +184,19 @@ class Turret {
                 this.currentCooldown = this.baseCooldown * .25;
                 return true;
             default:
-                console.error('Invalid cooldown rune level. Must be between 1 and 3.');
+                console.log('Invalid cooldown rune level. Must be between 1 and 3.');
                 return false;
         }
     }
-    addDamageRune(level) {
+    addDamageRune(level, incomingRune) {
         if(level <= this.runes.damage) {
-            console.error('No use in adding this.');
+            console.log('No use in adding this.');
             this.runeCount--; // Decrement rune count if no upgrade is made
+            this.upgradePotential = false; // Reset upgrade potential
             return false;
         }
         this.runes.damage = level;
+        this.addVisualRune(incomingRune); // Add the visual rune to the turret
         switch (level) {
             case 1:
                 this.currentDamage = this.baseDamage * 2.5;
@@ -149,17 +208,19 @@ class Turret {
                 this.currentDamage = this.baseDamage * 10;
                 return true;
             default:
-                console.error('Invalid cooldown rune level. Must be between 1 and 3.');
+                console.log('Invalid cooldown rune level. Must be between 1 and 3.');
                 return false;
         }
     }
-    addRangeRune(level) {
+    addRangeRune(level, incomingRune) {
         if(level <= this.runes.range) {
             console.error('No use in adding this.');
             this.runeCount--; // Decrement rune count if no upgrade is made
+            this.upgradePotential = false; // Reset upgrade potential
             return false;
         }
         this.runes.range = level;
+        this.addVisualRune(incomingRune); // Add the visual rune to the turret
         switch (level) {
             case 1:
                 this.currentRange = this.baseRange * 1.5;
@@ -171,46 +232,95 @@ class Turret {
                 this.currentRange = this.baseRange * 6;
                 return true;
             default:
-                console.error('Invalid cooldown rune level. Must be between 1 and 3.');
+                console.log('Invalid cooldown rune level. Must be between 1 and 3.');
                 return false;
         }
     }
-    addFireRune(level) {
+    addFireRune(level, incomingRune) {
         if(level <= this.runes.fire) {
-            console.error('No use in adding this.');
+            console.log('No use in adding this.');
             this.runeCount--; // Decrement rune count if no upgrade is made
+            this.upgradePotential = false; // Reset upgrade potential
             return false;
         }
         this.runes.fire = level;
         this.fireStack = level;
+        this.addVisualRune(incomingRune); // Add the visual rune to the turret
         return true;
     }
-    addFrostRune(level) {
+    addFrostRune(level, incomingRune) {
         if(level <= this.runes.frost) {
-            console.error('No use in adding this.');
+            console.log('No use in adding this.');
             this.runeCount--; // Decrement rune count if no upgrade is made
+            this.upgradePotential = false; // Reset upgrade potential
             return false;
         }
         this.runes.frost = level;
         this.frostStack = level;
+        this.addVisualRune(incomingRune); // Add the visual rune to the turret
         return true;
     }
-    //This function returns a boolean indicating whether the rune was successfully added
-    ensureSanity(level) {
+    //This function returns a boolean indicating whether the rune can be added or not.
+    ensureSanity(level, runeType) {
         const MAXRUNES = 3;
         const MAXLEVEL = 3;
         const MINLEVEL = 1;
 
         //First, ensure that the level is valid and that the rune count does not exceed the maximum allowed
         if (level < MINLEVEL || level > MAXLEVEL) {
-            console.error('Invalid rune level. Must be between 1 and 3.');
+            //console.log('Invalid rune level. Must be between 1 and 3.');
             return false;
         }
-        //Secondly, ensure that the rune count does not exceed the maximum allowed
-        if (this.runeCount >= MAXRUNES && !this.upgradePotential) {
-            console.error('Maximum rune count exceeded. Cannot add more runes.');
+        let foundLevel = 0;
+        for(const [key, value] of Object.entries(this.runes)) {
+            if(key === runeType) {
+                foundLevel = value; // Get the current level of the rune type
+                break; // Exit the loop once we find the rune type
+            }
+        }
+        if(foundLevel < level && foundLevel > 0) {
+            this.upgradePotential = true; // Allow for higher level rune to be added
+        } else if (foundLevel >= level) {
+            // If the rune type already exists at a higher or equal level, we do not allow adding it again
+            //console.log('Rune of this type already exists at a higher or equal level.');
             return false;
         }
+        else {
+            //If it is not a duplicate, we check the rune count
+            if (this.runeCount >= MAXRUNES && !this.upgradePotential) {
+            //console.log('Maximum rune count exceeded. Cannot add more runes.');
+            return false;
+            }
+        }
+        
         return true;
+    }
+    //returns null, calls the offset updater
+    addVisualRune(rune) {
+        // Add a visual representation of the rune to the turret
+        // and adding it to the turret's display.
+        if(this.upgradePotential) // If we are upgrading, we replace the existing rune sprite
+        {
+            for(const existingRune of this.runeSprites) {
+                if(existingRune.type === rune.type) {
+                    this.runeSprites.splice(this.runeSprites.indexOf(existingRune), 1); // Remove the existing rune sprite
+                    existingRune.destroy(); // Destroy the existing rune sprite
+                    break; // Exit the loop after removing the existing rune
+                }
+            }
+            this.upgradePotential = false; // Reset after use
+        }
+        rune.setScale(0.15);
+        this.runeSprites.push(rune); // Add the new rune sprite to the turret's rune sprites
+        // Calculate the offset position based on where it is in the array
+        this.updateRuneOffsets(); // Update the positions of the rune sprites
+    }
+    updateRuneOffsets() {
+        // Update the positions of the rune sprites based on their index
+        const offsetX = 15; // Horizontal offset for rune sprites
+        const offsetY = 15; // Vertical offset for rune sprites
+        this.runeSprites.forEach((rune, index) => {
+            rune.setPosition(this.realX + ((index - 1) * offsetX), this.realY + offsetY);
+        });
     }
 }

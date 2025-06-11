@@ -4,7 +4,7 @@ class Pathfinder extends Phaser.Scene {
 
         // npc pool
         this.npcPool = null;
-        this.TURRET_SCALE = 2.0; // Scale for turret sprites
+        this.TURRET_SCALE = 2; // Scale for turret sprites
 
         // modes
         this.mode = {
@@ -15,6 +15,7 @@ class Pathfinder extends Phaser.Scene {
         this.currentTurret = null;
         this.currentRune = null;
         this.isWaveRunning = false;
+
 
         //logic
         this.cornfieldhealth = 10
@@ -69,6 +70,7 @@ class Pathfinder extends Phaser.Scene {
         this.groundLayer = this.map.createLayer("Ground", this.tileset, 0, 0);
         this.pathLayer = this.map.createLayer("Walkways", this.tileset, 0, 0);
         this.treesLayer = this.map.createLayer("Trees-n-Bushes", this.tileset, 0, 0);
+        this.uiLayer = this.map.createLayer("Forbidden", this.tileset, 0, 0).setVisible(false);
 
 
         this.cameras.main.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
@@ -163,7 +165,13 @@ class Pathfinder extends Phaser.Scene {
         else if (this.mode.RUNE) {
             this.handleRunemode(this.currentRune);
         }
-
+        //WAVE LOGIC
+        if (this.isWaveRunning) {
+            for(const hero of this.turrets)
+            {
+                hero.turret.update(this.enemies); // Update each turret's logic
+            }
+        }
     }
 
 
@@ -174,6 +182,7 @@ class Pathfinder extends Phaser.Scene {
             if (this.isWaveRunning) return;
         this.isWaveRunning = true;
         if (this.spawnInterval) this.spawnInterval.destroy();
+        this.isWaveRunning = true;
 
         console.log(`Starting Wave ${this.currentWave}`);
     
@@ -324,6 +333,7 @@ class Pathfinder extends Phaser.Scene {
 
     checkWaveComplete() {
     if (this.enemiesAlive <= 0 && this.enemiesInWave <= 0) {
+        this.isWaveRunning = false;
         this.waveComplete();
     }
 }
@@ -406,6 +416,7 @@ class Pathfinder extends Phaser.Scene {
         //set location and randomize
         this.randomizeNPC(npc);
         const turret = new Turret(type);
+        turret.tileSize = this.TILESIZE; // Set tile size based on scale
         npc.turret = turret;
 
 
@@ -552,7 +563,8 @@ class Pathfinder extends Phaser.Scene {
         shoes.setFrame(Phaser.Utils.Array.GetRandom(this.clothingOptions.shoes));
         armor.setFrame(Phaser.Utils.Array.GetRandom(this.clothingOptions.armor));
         wig.setFrame(Phaser.Utils.Array.GetRandom(this.clothingOptions.wig));
-        npc.setScale(Phaser.Math.Between(0, 1) ? -1 : 1, 1);
+        //npc.setScale(Phaser.Math.Between(0, 1) ? -1 : 1, 1);
+        npc.setScale(this.TURRET_SCALE)
     }
 
     randomizeOrc(npc) { //same thing just green
@@ -653,12 +665,16 @@ class Pathfinder extends Phaser.Scene {
         const tileIndex = this.map.getTileAt(tileX, tileY, true, this.groundLayer);
         const tileIndex2 = this.map.getTileAt(tileX, tileY, true, this.pathLayer);
         const tileIndex3 = this.map.getTileAt(tileX, tileY, true, this.treesLayer);
+        const tileIndex4 = this.map.getTileAt(tileX, tileY, true, this.uiLayer);
 
         //first, we make sure we were given an actual turret object
         if (hero != null) {
+            //we need to convert based off the scale size
+            let scaledX = ((Math.trunc(tileX / this.TURRET_SCALE) + 0.5) * this.TILESIZE * this.TURRET_SCALE);
+            let scaledY = ((Math.trunc(tileY / this.TURRET_SCALE) + 0.5) * this.TILESIZE * this.TURRET_SCALE);
             //then, we set the xy to snap to a tile
-            hero.x = (tileX + 0.5) * this.TILESIZE;
-            hero.y = (tileY + 0.5) * this.TILESIZE;
+            hero.x = scaledX;
+            hero.y = scaledY;
             //also, the hero is now visible
             hero.setVisible(true);
 
@@ -666,18 +682,33 @@ class Pathfinder extends Phaser.Scene {
             if (this.pointer.isDown) {
                 //first off, let's get a bool to see if that tile is occupied.
                 for(const friend of this.turrets) {
-                    if (friend.turret.tileX === tileX && friend.turret.tileY === tileY)
+                    if (friend.turret.tileX === scaledX && friend.turret.tileY === scaledY)
                     {
                         return; // Exit if the tile is already occupied
                     }
                 }
                 //we make sure there is a tile on the first layer, and not the second or third layer
-                if (tileIndex && tileIndex2.index == -1 && tileIndex3.index == -1) { // Check if the tile exists empty
+                if (tileIndex && tileIndex2.index == -1 && tileIndex3.index == -1 && tileIndex4.index == -1) { // Check if the tile exists empty
                     this.currentTurret = null; // Clear current hero reference
                     this.modeReset();
-                    hero.turret.tileX = tileX; // Set turret's tile position
-                    hero.turret.tileY = tileY; // Set turret's tile position
+                    hero.turret.tileX = scaledX; // Set turret's tile position
+                    hero.turret.tileY = scaledY; // Set turret's tile position
+                    hero.turret.realX = hero.x; // Set turret's real position
+                    hero.turret.realY = hero.y; // Set turret's real position
                     this.turrets.push(hero); // Add turret to the list of placed turrets
+                }
+            } else {
+                for(const friend of this.turrets) {
+                    if (friend.turret.tileX === scaledX && friend.turret.tileY === scaledY)
+                    {
+                        hero.setAlpha(0.5);
+                    }
+                }
+                //we make sure there is a tile on the first layer, and not the second or third layer
+                if (tileIndex && tileIndex2.index == -1 && tileIndex3.index == -1 && tileIndex4.index == -1) { // Check if the tile exists empty
+                    hero.setAlpha(1);
+                } else {
+                    hero.setAlpha(0.5);
                 }
             }
         }
@@ -697,23 +728,43 @@ class Pathfinder extends Phaser.Scene {
         const tileY = Math.floor(this.pointer.worldY / this.TILESIZE);
 
         if(rune != null) {
+            //we need to convert based off the scale size
+            let scaledX = ((Math.trunc(tileX / this.TURRET_SCALE) + 0.5) * this.TILESIZE * this.TURRET_SCALE);
+            let scaledY = ((Math.trunc(tileY / this.TURRET_SCALE) + 0.5) * this.TILESIZE * this.TURRET_SCALE);
             //then, we set the xy to snap to a tile
-            rune.x = (tileX + 0.5) * this.TILESIZE;
-            rune.y = (tileY + 0.5) * this.TILESIZE;
+            rune.x = scaledX;
+            rune.y = scaledY;
 
             //finally, we start to detect if the cursor is pressed
             if (this.pointer.isDown) {
                 //we make sure there is a turret at the tile position
                 for(const friend of this.turrets) {
-                    if (friend.turret.tileX === tileX && friend.turret.tileY === tileY) {
-                        let executionResult = friend.turret.addRune(rune.level, rune.type);
+                    if (friend.turret.tileX === scaledX && friend.turret.tileY === scaledY) {
+                        let executionResult = friend.turret.addRune(rune);
+                        //this is upon success
                         if(executionResult) {
                             this.currentRune = null; // Clear current rune reference
                             this.modeReset(); // Exit rune mode after placing
-                            rune.destroy(); // Remove the rune from the scene
                             return; // Exit after placing the rune
                         }
                     }
+                }
+            } else {
+                let found = false;
+                for(const friend of this.turrets) {
+                    if (friend.turret.tileX === scaledX && friend.turret.tileY === scaledY) {
+                        found = true;
+                        let executionResult = friend.turret.ensureSanity(rune.level, rune.type);
+                        //this is upon success
+                        if(executionResult) {
+                            rune.setAlpha(1); // Set rune to semi-transparent
+                        } else {
+                            rune.setAlpha(0.5); // Reset rune alpha if not valid
+                        }
+                    }
+                }
+                if(!found) {
+                    rune.setAlpha(0.5); // Reset rune alpha if no turret found
                 }
             }
         }
