@@ -14,6 +14,25 @@ class Pathfinder extends Phaser.Scene {
         this.currentTurret = null;
         this.currentRune = null;
 
+        this.cornfieldhealth = 10
+        this.corn = 0;
+        
+        
+        this.currentWave = 1;
+        this.waveSet = 5; // Each set contains 5 waves
+        this.waveTimer = null;
+        this.spawnInterval = null;
+        this.enemiesInWave = 0;
+        this.enemiesAlive = 0;
+        
+        //enemy stats
+        this.enemyStats = {
+            speed: (x) =>  0.1 * x + 1,
+            health: (x) => 15 * Math.exp(0.1 * x) - 10,
+            damage: (x) => 0.1 * x + 1,
+            corn: (x) => 10 * x
+        };
+
         //map properties
         this.TILESIZE = 16;
         this.SCALE = 2.0;
@@ -29,6 +48,7 @@ class Pathfinder extends Phaser.Scene {
     }
 
     create() {
+
         // Initialize properties
         this.modeReset();
         this.currentTurret = null;
@@ -86,7 +106,7 @@ class Pathfinder extends Phaser.Scene {
             wig: this.generateWigFrames()
         };
 
-        //npc pool (no distinction between ally and foe rn)
+        //npc pool
         this.npcPool = this.add.group({
             classType: Phaser.GameObjects.Container,
             runChildUpdate: true
@@ -130,7 +150,7 @@ class Pathfinder extends Phaser.Scene {
             }
         }
         if (Phaser.Input.Keyboard.JustDown(this.keys.D)) {
-            this.spawnNPC();
+            this.startWave();
         }
         //HANDLE GLOBAL MODE UPDATING
         if(this.mode.PLACE)
@@ -140,9 +160,208 @@ class Pathfinder extends Phaser.Scene {
         else if (this.mode.RUNE) {
             this.handleRunemode(this.currentRune);
         }
+
     }
 
+
 //---------------------------- HELPER FUNCTIONS ----------------------------//
+
+
+        startWave() {
+        //clear any existing timers
+        if (this.waveTimer) this.waveTimer.destroy();
+        if (this.spawnInterval) this.spawnInterval.destroy();
+
+        console.log(`Starting Wave ${this.currentWave}`);
+
+        //calculate power points for this wave
+        const powerPoints = Math.pow(2, this.currentWave);
+        
+        //determine wave type within the set of 5
+        const waveType = this.currentWave % 5 || 5; // 1-5
+        
+        switch (waveType) {
+            case 1:
+                this.spawnWaveType1(powerPoints);
+                console.log(1);
+                break;
+            case 2:
+                this.spawnWaveType2(powerPoints);
+                console.log(2);
+                break;
+            case 3: // miniboss
+                this.spawnWaveType3(powerPoints);
+                console.log(3);
+                break;
+            case 4: // horde
+                this.spawnWaveType4(powerPoints);
+                console.log(4);
+                break;
+            case 5: // boss
+                this.spawnWaveType5(powerPoints);
+                console.log(5);
+                break;
+        }
+        
+        this.waveTimer = this.time.addEvent({
+            delay: 1000,
+            callback: this.checkWaveComplete,
+            callbackScope: this,
+            loop: true
+        });
+    }
+
+    spawnWaveType1(powerPoints) {
+        //Wave 1: .1 PP on 10 creatures
+        const ppPerEnemy = Math.max(0.1 * powerPoints / 10, 1);
+        this.enemiesInWave = 10;
+        
+        this.spawnInterval = this.time.addEvent({
+            delay: 1000,
+            callback: () => {
+                this.spawnEnemy(ppPerEnemy);
+            },
+            callbackScope: this,
+            repeat: this.enemiesInWave - 1
+        });
+        
+        // Spawn first enemy immediately
+        this.spawnEnemy(ppPerEnemy);
+    }
+
+    spawnWaveType2(powerPoints) {
+        //Wave 2: .25 PP on 2 creatures, .1 PP on 5 creatures
+        const strongPP = Math.max(0.25 * powerPoints / 2, 1);
+        const weakPP = Math.max(0.1 * powerPoints / 5, 1);
+        this.enemiesInWave = 7; // 2 strong + 5 weak
+        
+        //spawn strong enemies
+        this.time.addEvent({
+            delay: 1000,
+            callback: () => {
+                this.spawnEnemy(strongPP);
+            },
+            callbackScope: this,
+            repeat: 1
+        });
+        
+        //spawn weak enemies
+        this.time.addEvent({
+            delay: 6000,
+            callback: () => {
+                this.spawnInterval = this.time.addEvent({
+                    delay: 800,
+                    callback: () => {
+                        this.spawnEnemy(weakPP);
+                    },
+                    callbackScope: this,
+                    repeat: 4
+                });
+                this.spawnEnemy(weakPP); // First weak enemy
+            },
+            callbackScope: this
+        });
+    }
+
+    spawnWaveType3(powerPoints) {
+        //Wave 3 (Miniboss): .5 PP on a creature, .1 PP on 5 creatures
+        const bossPP = Math.max(0.5 * powerPoints, 1);
+        const minionPP = Math.max(0.1 * powerPoints / 5, 1);
+        this.enemiesInWave = 6; // 1 boss + 5 minions
+        
+        //spawn miniboss
+        this.spawnEnemy(bossPP, false, true);
+        
+        //spawn minions after a delay
+        this.time.addEvent({
+            delay: 2000,
+            callback: () => {
+                this.spawnInterval = this.time.addEvent({
+                    delay: 1000,
+                    callback: () => {
+                        this.spawnEnemy(minionPP);
+                    },
+                    callbackScope: this,
+                    repeat: 4
+                });
+                this.spawnEnemy(minionPP); // First minion
+            },
+            callbackScope: this
+        });
+    }
+
+    spawnWaveType4(powerPoints) {
+        //Wave 4 (Horde): .02 PP on each creature
+        const enemyCount = Math.min(Math.floor(powerPoints / 0.02), 50); 
+        const ppPerEnemy = Math.max(0.02 * powerPoints, 1);
+    
+        //set the total enemies for this wave
+        this.enemiesInWave = enemyCount;
+        this.enemiesAlive = 0; //reset alive counter
+    
+        //clear any existing interval
+        if (this.spawnInterval) {
+            this.spawnInterval.destroy();
+        }
+    
+    //spawn first enemy immediately
+    this.spawnEnemy(ppPerEnemy);
+    
+    //spawn remaining enemies with interval
+    if (enemyCount > 1) {
+        this.spawnInterval = this.time.addEvent({
+            delay: 300,
+            callback: () => {
+                this.spawnEnemy(ppPerEnemy);
+            },
+            callbackScope: this,
+            repeat: enemyCount - 1
+        });
+    }
+}
+
+    spawnWaveType5(powerPoints) {
+        //Wave 5 (Boss): .75 PP on a single creature
+        const bossPP = Math.max(0.75 * powerPoints, 1);
+        
+        //spawn boss
+        this.spawnEnemy(bossPP, true, false);
+    }
+
+    enemyDefeated(enemy) {
+    this.enemiesAlive--;
+    this.enemiesInWave--;
+    
+        //award corn
+        if (enemy.stats) {
+        this.corn += enemy.stats.corn;
+        console.log(`Enemy defeated! Awarded ${enemy.stats.corn} corn`);
+    }
+    
+    this.checkWaveComplete();
+}
+
+    checkWaveComplete() {
+    if (this.enemiesAlive <= 0 && this.enemiesInWave <= 0) {
+        this.waveComplete();
+    }
+}
+
+    waveComplete() {
+        console.log(`Wave ${this.currentWave} complete!`);
+        
+        if (this.waveTimer) this.waveTimer.destroy();
+        if (this.spawnInterval) this.spawnInterval.destroy();
+        
+        this.currentWave++;
+        if (this.currentWave % 5 === 1) {
+            this.waveSet++;
+        }
+        
+        //delay before next wave starts
+        this.time.delayedCall(5000, this.startWave, [], this);
+    }
+
 
         spawnNPC() {
         const spawnPoint = this.pathPoints[0];
@@ -234,16 +453,23 @@ class Pathfinder extends Phaser.Scene {
         return rune;
     }
 
-    startNPCMovement(npc) {
-        const nextIndex = (npc.currentPathIndex + 1) % this.pathPoints.length;
-        const nextPoint = this.pathPoints[nextIndex];
+   startNPCMovement(npc) {
+        const nextIndex = npc.currentPathIndex + 1;
         
+        //check if reached the last point
+        if (nextIndex >= this.pathPoints.length) {
+            this.enemyReachedEnd(npc);
+            return;
+        }
+
+        const nextPoint = this.pathPoints[nextIndex];
         npc.currentPathIndex = nextIndex;
 
         const dx = nextPoint.x - npc.x;
         const dy = nextPoint.y - npc.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
-        const speed = 60; //adjust as you please
+        const speed = npc.stats ? npc.stats.speed * 16 : 60; //use enemy speed if available
+        //console.log(speed);
         const duration = (distance / speed) * 1000;
 
         this.tweens.add({
@@ -256,6 +482,60 @@ class Pathfinder extends Phaser.Scene {
                 this.startNPCMovement(npc);
             }
         });
+    }
+
+    //handle enemies reaching the end
+    enemyReachedEnd(npc) {
+    console.log("Enemy reached the end!");
+    
+    //reduce corn field health
+    this.cornfieldhealth -= npc.stats ? npc.stats.damage : 1;
+    console.log("damage " + npc.stats.damage);
+    console.log(this.cornfieldhealth);
+    
+    this.enemiesAlive--;
+    this.enemiesInWave--;
+    console.log(this.enemiesAlive);
+    
+    this.despawnNPC(npc);
+    this.checkWaveComplete();
+}
+
+    //mark enemies
+    spawnEnemy(powerPoints, isBoss = false, miniBoss = false) {
+        const enemy = this.spawnNPC();
+        
+        //Mark as enemy for wave system
+        enemy.isEnemy = true;
+        
+        //Calculate enemy stats based on power points
+        const stats = {
+            speed: this.enemyStats.speed(powerPoints),
+            health: this.enemyStats.health(powerPoints),
+            damage: this.enemyStats.damage(powerPoints),
+            corn: this.enemyStats.corn(powerPoints)
+        };
+        
+
+        enemy.stats = stats;
+        enemy.isBoss = isBoss;
+        enemy.currentPathIndex = 0; 
+        this.enemiesAlive++;
+        
+        //Visual indication for bosses
+        if (isBoss) {
+            enemy.setScale(2.0); //larger size
+        }
+        if (miniBoss) {
+            enemy.setScale(1.5); //larger size
+        }
+        
+        //track enemy death
+        enemy.on('destroy', () => {
+            this.enemyDefeated(enemy);
+        });
+        
+        return enemy;
     }
 
     layersToGrid(layers) {
@@ -281,7 +561,7 @@ class Pathfinder extends Phaser.Scene {
     }
 
 
-    randomizeNPC(npc) { //again, theres no distinction between friend and foe rn
+    randomizeNPC(npc) { //wow!
         const {body, drawls, shoes, armor, wig} = npc.sprites;
         body.setFrame(Phaser.Utils.Array.GetRandom(this.clothingOptions.bodies));
         drawls.setFrame(Phaser.Utils.Array.GetRandom(this.clothingOptions.drawls));
@@ -291,7 +571,7 @@ class Pathfinder extends Phaser.Scene {
         npc.setScale(Phaser.Math.Between(0, 1) ? -1 : 1, 1);
     }
 
-    randomizeOrc(npc) { //again, theres no distinction between friend and foe rn
+    randomizeOrc(npc) { //same thing just green
         const {body, drawls, shoes, armor, wig} = npc.sprites;
         body.setFrame(Phaser.Utils.Array.GetRandom(this.clothingOptions.orcbodies));
         drawls.setFrame(Phaser.Utils.Array.GetRandom(this.clothingOptions.drawls));
