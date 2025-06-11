@@ -139,15 +139,12 @@ class Pathfinder extends Phaser.Scene {
                 if(this.currentTurret != null) {
                     switch (this.currentTurret.turret.type) {
                         case 'warrior':
-                            this.corn += this.shopCosts.warrior;
                             this.updateCornCounter(this.shopCosts.warrior); 
                             break;
                         case 'archer':
-                            this.corn += this.shopCosts.archer;
                             this.updateCornCounter(this.shopCosts.archer); 
                             break;
                         case 'wizard':
-                            this.corn += this.shopCosts.wizard;
                             this.updateCornCounter(this.shopCosts.wizard); 
                             break;
                         default:
@@ -345,7 +342,6 @@ class Pathfinder extends Phaser.Scene {
         //award corn
         this.killedEnemies++;
         if (enemy.stats) {
-            this.corn += enemy.stats.corn;
             console.log(`Enemy defeated! Awarded ${enemy.stats.corn} corn`);
             this.updateCornCounter(enemy.stats.corn); 
         } 
@@ -558,7 +554,7 @@ class Pathfinder extends Phaser.Scene {
         if (isBoss) {
             enemy.setScale(2.2); //larger size
         }
-        if (miniBoss) {
+        else if (miniBoss) {
             enemy.setScale(1.8); //larger size
         }
         
@@ -1030,7 +1026,6 @@ class Pathfinder extends Phaser.Scene {
                     } else {
                         button.setScale(0.8); // Scale down on click
                         shopCornText.setScale(0.8); // Scale down the corn text
-                        this.corn -= cost; // Deduct corn
                         this.updateCornCounter(-cost); // Update corn counter with negative value
                         if(this.mode.DEFAULT) {
                             this.currentTurret = this.spawnTurret(type);
@@ -1068,6 +1063,7 @@ class Pathfinder extends Phaser.Scene {
 
     updateCornCounter(amount = 0) {
         // change font + corn photo later 
+        this.corn += amount; // Update corn count
         this.cornText.setText(`🌽 ${this.corn}`);
 
         // corn jumpscare animation
