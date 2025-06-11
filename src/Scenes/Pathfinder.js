@@ -683,12 +683,13 @@ class Pathfinder extends Phaser.Scene {
             if (this.pointer.isDown) {
                 //first off, let's get a bool to see if that tile is occupied.
                 for(const friend of this.turrets) {
-                    if (friend.turret.tileX === tileX && friend.turret.tileY === tileY) {
+                    if (friend.turret.tileX === tileX && friend.turret.tileY === tileY)
+                    {
                         return; // Exit if the tile is already occupied
                     }
                 }
                 //we make sure there is a tile on the first layer, and not the second or third layer
-                if (tileIndex && (tileIndex2.index == -1 && tileIndex3.index == -1)) { // Check if the tile exists empty
+                if (tileIndex && tileIndex2.index == -1 && tileIndex3.index == -1) { // Check if the tile exists empty
                     this.currentTurret = null; // Clear current hero reference
                     this.modeReset();
                     hero.turret.tileX = tileX; // Set turret's tile position
