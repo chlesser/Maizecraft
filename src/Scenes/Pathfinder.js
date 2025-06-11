@@ -145,15 +145,6 @@ class Pathfinder extends Phaser.Scene {
     }
 
     update() {
-        /*delete later*/
-        if (Phaser.Input.Keyboard.JustDown(this.keys.P)) {
-            // place turret test
-            if (this.mode.DEFAULT) {
-                // toggle place mode and generate an NPC that hugs the cursor
-                this.currentTurret = this.spawnTurret('wizard'); // Example turret type
-                this.modeReset('PLACE');
-            }
-        }
         if (Phaser.Input.Keyboard.JustDown(this.keys.R)) {
             // place rune test
             if (this.mode.DEFAULT) {
@@ -195,7 +186,7 @@ class Pathfinder extends Phaser.Scene {
 
             console.log(`Starting Wave ${this.currentWave}`);
     
-            const powerPoints = 2 * this.currentWave
+            const powerPoints = (2 * this.currentWave) + 3;
             const waveType = this.currentWave % 5 || 5;
     
             switch (waveType) {
