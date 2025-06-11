@@ -1075,6 +1075,75 @@ class Pathfinder extends Phaser.Scene {
             this.shopSlots.push({button: button, cornText: shopCornText});
         }
         this.populateShop(); // Populate the shop with runes
+
+        // Refresh button
+        const iconKey = `refreshIcon`;
+        const backKey = `buttonBackground`;
+        const x = this.map.widthInPixels/2 + 477;
+
+        let cost = this.getCost('refresh'); // Get the cost for refreshing the shop
+        let shopCornText = this.add.text(x - 2, y + 16, `🌽${cost}`, {
+            fontSize: '12px',
+            fill: '#fff',
+            stroke: '#000',
+            strokeThickness: 4,
+        }).setScrollFactor(0).setDepth(102).setOrigin(0.5, 0.5);
+
+        const refreshIcon = this.add.image(this.map.widthInPixels/2 + 157, this.map.heightInPixels/2 + 135, iconKey)
+            .setDisplaySize(20, 20)
+            .setOrigin(0.5, 0.5)
+            .setDepth(102)
+
+        const refreshButton = this.add.image(x, y - 10, backKey)
+            .setDisplaySize(32, 32)  
+            .setInteractive()
+            .setOrigin(0.5, 0.5)
+            .setScrollFactor(0)
+            .setDepth(101)
+            .on('pointerdown', () => {
+                if(this.mode.DEFAULT) {
+                    if(this.corn < this.shopCosts.refresh) {
+                        //shake the button if not enough corn
+                        this.tweens.add({
+                            targets: [refreshButton],
+                            x: refreshButton.x + 5,
+                            duration: 100,
+                            yoyo: true,
+                            ease: 'Back.easeIn',
+                            onComplete: () => {
+                            }
+                        });
+                        this.tweens.add({
+                            targets: [refreshIcon],
+                            x: refreshIcon.x + 5,
+                            duration: 100,
+                            yoyo: true,
+                            ease: 'Back.easeIn',
+                            onComplete: () => {
+                            }
+                        });
+                    } else {
+                        refreshButton.setScale(0.8); // Scale down on click
+                        refreshIcon.setScale(0.8); // Scale down the icon
+                        this.updateCornCounter(-this.shopCosts.refresh); // Update corn counter with negative value
+                        this.populateShop(); // Refresh the shop runes
+                        this.tweens.add({
+                            targets: [refreshButton],
+                            scaleX: 1,
+                            scaleY: 1,
+                            duration: 150,
+                            ease: 'Back.easeOut'
+                        });
+                        this.tweens.add({
+                            targets: [refreshIcon],
+                            scaleX: 1.25,
+                            scaleY: 1.25,
+                            duration: 150,
+                            ease: 'Back.easeOut'
+                        });
+                    }
+                }
+            });
     }
 
     createCornCounter() {
