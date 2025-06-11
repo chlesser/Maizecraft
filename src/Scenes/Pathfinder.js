@@ -128,7 +128,15 @@ class Pathfinder extends Phaser.Scene {
                 }
             }
         })
+
+        // functions to create UI
+        this.createUI();
+
+        // TO DO
+        // this.createHealthBar();
+        // this.createCornCounter();
     }
+
     update() {
         /*delete later*/
         if (Phaser.Input.Keyboard.JustDown(this.keys.P)) {
@@ -765,5 +773,47 @@ class Pathfinder extends Phaser.Scene {
                 }
             }
         }
+    }
+
+    /*------- Tina's UI Corner -------*/
+    createUI() {
+        // UI bar background - replace with asset later
+        this.uiBar = this.add.rectangle(
+            this.map.widthInPixels/2 + this.TILESIZE,
+            this.map.heightInPixels/2 + (18 * this.TILESIZE),
+            this.map.widthInPixels - 32, 
+            this.map.heightInPixels - (19 * this.TILESIZE), 
+            0x222222, 
+            0.5)
+            .setDepth(100)
+            .setOrigin(0, 0)
+            .setScrollFactor(0);
+
+        // Button spacing settings
+        const iconSpacing = 64;
+        const startX = this.map.widthInPixels/2 + (9 * this.TILESIZE);
+        const y = this.map.heightInPixels/2 + (19 * this.TILESIZE);
+
+        // Turret types
+        const turretTypes = ['archer', 'warrior', 'wizard'];
+
+        // make a button for each turret type
+        turretTypes.forEach((type, i) => {
+            const iconKey = `${type}Icon`; 
+            const x = startX + i * iconSpacing;
+
+            const button = this.add.image(x, y, iconKey)
+                .setDisplaySize(48, 48)  
+                .setInteractive()
+                .setOrigin(0, 0)
+                .setScrollFactor(0)
+                .setDepth(101)
+                .on('pointerdown', () => {
+                    this.currentTurret = this.spawnTurret(type);
+                    this.modeReset('PLACE');
+                    console.log(`Spawned turret of type: ${type}`);
+                });
+        });
+
     }
 }

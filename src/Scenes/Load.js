@@ -24,7 +24,7 @@ class Load extends Phaser.Scene {
         //load rune sprites
         //default rune
         this.load.image("defaultRune", "Runes/Grey/Rectangle-(outline)/runeGrey_rectangleOutline_036.png");
-        // LEVEL 1 RUNES
+        // LEVEL 1 RUNES 
         this.load.setPath("./assets/Runes/Grey/Rectangle-(outline)/");
         this.load.image("cooldownRune1", "runeGrey_rectangleOutline_033.png");
         this.load.image("damageRune1", "runeGrey_rectangleOutline_027.png");
@@ -45,6 +45,15 @@ class Load extends Phaser.Scene {
         this.load.image("rangeRune3", "runeBlack_rectangleOutline_003.png");
         this.load.image("fireRune3", "runeBlack_rectangleOutline_014.png");
         this.load.image("frostRune3", "runeBlack_rectangleOutline_023.png");
+
+        // load in UI assets
+        // TEMP TIL I GET ACTUAL ICONS
+        this.load.setPath("./assets/UI/");
+        this.load.image('archerIcon', 'corn.png');
+        this.load.image('warriorIcon', 'popcorn.png');
+        this.load.image('wizardIcon', 'candycorn.png');
+        this.load.image('runeIcon', 'brick.png');
+
         //fix path
         this.load.setPath("./assets/");
 
