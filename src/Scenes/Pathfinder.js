@@ -70,6 +70,7 @@ class Pathfinder extends Phaser.Scene {
         this.groundLayer = this.map.createLayer("Ground", this.tileset, 0, 0);
         this.pathLayer = this.map.createLayer("Walkways", this.tileset, 0, 0);
         this.treesLayer = this.map.createLayer("Trees-n-Bushes", this.tileset, 0, 0);
+        this.uiLayer = this.map.createLayer("Forbidden", this.tileset, 0, 0).setVisible(false);
 
 
         this.cameras.main.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
@@ -674,6 +675,7 @@ class Pathfinder extends Phaser.Scene {
         const tileIndex = this.map.getTileAt(tileX, tileY, true, this.groundLayer);
         const tileIndex2 = this.map.getTileAt(tileX, tileY, true, this.pathLayer);
         const tileIndex3 = this.map.getTileAt(tileX, tileY, true, this.treesLayer);
+        const tileIndex4 = this.map.getTileAt(tileX, tileY, true, this.uiLayer);
 
         //first, we make sure we were given an actual turret object
         if (hero != null) {
@@ -690,18 +692,33 @@ class Pathfinder extends Phaser.Scene {
             if (this.pointer.isDown) {
                 //first off, let's get a bool to see if that tile is occupied.
                 for(const friend of this.turrets) {
-                    if (friend.turret.tileX === tileX && friend.turret.tileY === tileY)
+                    if (friend.turret.tileX === scaledX && friend.turret.tileY === scaledY)
                     {
                         return; // Exit if the tile is already occupied
                     }
                 }
                 //we make sure there is a tile on the first layer, and not the second or third layer
-                if (tileIndex && tileIndex2.index == -1 && tileIndex3.index == -1) { // Check if the tile exists empty
+                if (tileIndex && tileIndex2.index == -1 && tileIndex3.index == -1 && tileIndex4.index == -1) { // Check if the tile exists empty
                     this.currentTurret = null; // Clear current hero reference
                     this.modeReset();
                     hero.turret.tileX = scaledX; // Set turret's tile position
                     hero.turret.tileY = scaledY; // Set turret's tile position
+                    hero.turret.realX = hero.x; // Set turret's real position
+                    hero.turret.realY = hero.y; // Set turret's real position
                     this.turrets.push(hero); // Add turret to the list of placed turrets
+                }
+            } else {
+                for(const friend of this.turrets) {
+                    if (friend.turret.tileX === scaledX && friend.turret.tileY === scaledY)
+                    {
+                        hero.setAlpha(0.5);
+                    }
+                }
+                //we make sure there is a tile on the first layer, and not the second or third layer
+                if (tileIndex && tileIndex2.index == -1 && tileIndex3.index == -1 && tileIndex4.index == -1) { // Check if the tile exists empty
+                    hero.setAlpha(1);
+                } else {
+                    hero.setAlpha(0.5);
                 }
             }
         }
@@ -733,14 +750,31 @@ class Pathfinder extends Phaser.Scene {
                 //we make sure there is a turret at the tile position
                 for(const friend of this.turrets) {
                     if (friend.turret.tileX === scaledX && friend.turret.tileY === scaledY) {
-                        let executionResult = friend.turret.addRune(rune.level, rune.type);
+                        let executionResult = friend.turret.addRune(rune);
+                        //this is upon success
                         if(executionResult) {
                             this.currentRune = null; // Clear current rune reference
                             this.modeReset(); // Exit rune mode after placing
-                            rune.destroy(); // Remove the rune from the scene
                             return; // Exit after placing the rune
                         }
                     }
+                }
+            } else {
+                let found = false;
+                for(const friend of this.turrets) {
+                    if (friend.turret.tileX === scaledX && friend.turret.tileY === scaledY) {
+                        found = true;
+                        let executionResult = friend.turret.ensureSanity(rune.level, rune.type);
+                        //this is upon success
+                        if(executionResult) {
+                            rune.setAlpha(1); // Set rune to semi-transparent
+                        } else {
+                            rune.setAlpha(0.5); // Reset rune alpha if not valid
+                        }
+                    }
+                }
+                if(!found) {
+                    rune.setAlpha(0.5); // Reset rune alpha if no turret found
                 }
             }
         }
