@@ -64,6 +64,7 @@ class Turret {
         }
         this.searchForEnemy(enemies);
     }
+
     //class updates
     updateWarrior(enemies) {
         // Warrior turret logic
@@ -256,6 +257,8 @@ class Turret {
         this.addVisualRune(incomingRune); // Add the visual rune to the turret
         return true;
     }
+
+    
     //This function returns a boolean indicating whether the rune can be added or not.
     ensureSanity(level, runeType) {
         const MAXRUNES = 3;
