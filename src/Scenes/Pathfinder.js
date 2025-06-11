@@ -429,7 +429,7 @@ class Pathfinder extends Phaser.Scene {
             default:
                 this.randomizeNPC(npc);
         }
-        const turret = new Turret(type);
+        const turret = new Turret(type, this);
         turret.tileSize = this.TILESIZE; // Set tile size based on scale
         npc.turret = turret;
 

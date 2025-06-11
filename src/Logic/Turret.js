@@ -1,10 +1,12 @@
 class Turret {
-    constructor(type) {
+    constructor(type, scene = null) {
         //basestats
         this.baseDamage = 1;
         this.baseRange = 1;
         this.baseCooldown = 1000; // in milliseconds
         this.type = type;
+
+        this.scene = scene; // Reference to the scene, if needed
 
 
         //current stats
@@ -80,14 +82,28 @@ class Turret {
         // Archer turret logic
         let enemy = this.searchForEnemy(enemies);
         if(enemy != null) {
-            enemy.takeDamage(this.currentDamage); // Deal damage to the enemy
+            let arrow = new Arrow({
+                scene: this.scene,
+                x: this.realX,
+                y: this.realY,
+                enemy: enemy,
+                flyTime: 150 + (Math.random() * 100), // Randomize flight time slightly
+                damage: this.currentDamage
+            });
         }
     }
     updateWizard(enemies) {
         // Wizard turret logic
         let enemy = this.searchForEnemy(enemies);
         if(enemy != null) {
-            enemy.takeDamage(this.currentDamage); // Deal damage to the enemy
+            let orb = new Orb({
+                scene: this.scene,
+                x: this.realX,
+                y: this.realY,
+                enemy: enemy,
+                flyTime: 300 + (Math.random() * 100), // Randomize flight time slightly
+                damage: this.currentDamage
+            });
         }
     }
     /*
