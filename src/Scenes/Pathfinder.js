@@ -31,6 +31,9 @@ class Pathfinder extends Phaser.Scene {
             level2: 200,
             level3: 500,
         }
+        this.shopSlots = []; //contains a reference to the shop button
+        this.shopRunes = []; //rune objects in the shop
+        this.removedPos = -1;
         
         this.currentWave = 1;
         this.waveSet = 5; //each set contains 5 waves
@@ -136,25 +139,21 @@ class Pathfinder extends Phaser.Scene {
             if(pointer.rightButtonDown()) {
                 this.modeReset();
                 if(this.currentTurret != null) {
-                    switch (this.currentTurret.turret.type) {
-                        case 'warrior':
-                            this.updateCornCounter(this.shopCosts.warrior); 
-                            break;
-                        case 'archer':
-                            this.updateCornCounter(this.shopCosts.archer); 
-                            break;
-                        case 'wizard':
-                            this.updateCornCounter(this.shopCosts.wizard); 
-                            break;
-                        default:
-                            console.warn("Unknown turret type");
-                    }
+                    const concat = "" + this.currentTurret.turret.type;
+                    this.updateCornCounter(this.getCost(concat));
                     this.currentTurret.destroy();
                     this.currentTurret = null;
                 }
                 if(this.currentRune != null) {
-                    this.currentRune.destroy();
+                    const concat = "level" + this.currentRune.level;
+                    this.updateCornCounter(this.getCost(concat));
+                    //insert the rune back at the removed position
+                    if (this.removedPos >= 0 && this.removedPos < this.shopRunes.length) {
+                        this.shopRunes[this.removedPos] = this.currentRune;
+                        this.updateShopVisuals();
+                    }
                     this.currentRune = null;
+                    this.removedPos = -1; // Reset removed position
                 }
             }
         })
@@ -168,6 +167,9 @@ class Pathfinder extends Phaser.Scene {
     }
 
     update() {
+        if (Phaser.Input.Keyboard.JustDown(this.keys.P)) {
+            this.populateShop();
+        }
         if (Phaser.Input.Keyboard.JustDown(this.keys.D)) {
             this.startWave();
         }
@@ -946,8 +948,8 @@ class Pathfinder extends Phaser.Scene {
                         let executionResult = friend.turret.addRune(rune);
                         //this is upon success
                         if(executionResult) {
-                            this.currentRune = null; // Clear current rune reference
                             this.currentRune.setDepth(3);
+                            this.currentRune = null; // Clear current rune reference
                             this.modeReset(); // Exit rune mode after placing
                             return; // Exit after placing the rune
                         } else {
@@ -1062,42 +1064,15 @@ class Pathfinder extends Phaser.Scene {
                     strokeThickness: 4,
                 }).setScrollFactor(0).setDepth(102).setOrigin(0.5, 0.5);
             
-            const button = this.add.image(x, y, iconKey)
+            let button = this.add.image(x, y, iconKey)
                 .setDisplaySize(44, 64)  
                 .setInteractive()
                 .setOrigin(0.5, 0.5)
                 .setScrollFactor(0)
                 .setDepth(101)
-                .on('pointerdown', () => {
-                    if(this.corn < cost) {
-                        //shake the button if not enough corn
-                        this.tweens.add({
-                            targets: [button, shopCornText],
-                            x: button.x + 5,
-                            duration: 100,
-                            yoyo: true,
-                            ease: 'Back.easeIn',
-                            onComplete: () => {
-                            }
-                        });
-                    } else {
-                        if(this.mode.DEFAULT) {
-                            button.setScale(0.8); // Scale down on click
-                            shopCornText.setScale(0.8); // Scale down the corn text
-                            this.updateCornCounter(-cost); // Update corn counter with negative value
-                            this.currentRune = this.spawnRune(); // Example turret type
-                            this.modeReset('RUNE');
-                            this.tweens.add({
-                            targets: [button, shopCornText],
-                            scaleX: 1,
-                            scaleY: 1,
-                            duration: 150,
-                            ease: 'Back.easeOut'
-                        });
-                        }
-                    }
-                });
+            this.shopSlots.push({button: button, cornText: shopCornText});
         }
+        this.populateShop(); // Populate the shop with runes
     }
 
     createCornCounter() {
@@ -1154,6 +1129,91 @@ class Pathfinder extends Phaser.Scene {
             });
         }
     }
+    /*
+        This function populates the rune shop
+        Input --> Takes a 
+    */
+    populateShop() {
+        const existing = this.shopRunes.length > 0; //this is a bool that determines if the shop is already populated
+        // Clear existing runes if shop is already populated
+        if (existing) {
+            this.shopRunes.forEach(rune => rune.destroy());
+            this.shopRunes = [];
+        }
+        // Generate new runes
+        let newRunes = [];
+        for (let i = 0; i < 5; i++) {
+            const rune = this.weightedRandomRune();
+            rune.setDepth(500);
+            newRunes.push(rune);
+        }
+        // Add new runes to the shop
+        this.shopRunes = newRunes;
+        this.updateShopVisuals();
+    }
+    updateShopVisuals() {
+        for(let i = 0; i < this.shopSlots.length; i++) {
+        console.log(`Adding rune to slot ${i}`);
+            let button = this.shopSlots[i].button;
+            let text = this.shopSlots[i].cornText;
+            let rune = this.shopRunes[i];
 
+            let cost = this.getCost(`level${rune.level}`); // Get cost based on rune level
+            text.setText(`🌽${cost}`); // Update the text with the cost
 
+            rune.x = button.x - 320;
+            rune.y = button.y - 210;
+            button.on('pointerdown', () => {
+                    if(this.corn < cost) {
+                        //shake the button if not enough corn
+                        this.tweens.add({
+                            targets: [button, text],
+                            x: button.x + 5,
+                            duration: 100,
+                            yoyo: true,
+                            ease: 'Back.easeIn',
+                            onComplete: () => {
+                            }
+                        });
+                        this.tweens.add({
+                            targets: [rune],
+                            x: rune.x + 5,
+                            duration: 100,
+                            yoyo: true,
+                            ease: 'Back.easeIn',
+                            onComplete: () => {
+                            }
+                        });
+                    } else {
+                        if(this.mode.DEFAULT) {
+                            button.setScale(0.8); // Scale down on click
+                            text.setText(""); // Scale down the corn text
+                            this.updateCornCounter(-cost); // Update corn counter with negative value
+                            this.currentRune = rune; // Example turret type
+                            this.modeReset('RUNE');
+                            button.input.enabled = false; // Disable button interaction
+                            this.tweens.add({
+                                targets: [button, text],
+                                scaleX: 1,
+                                scaleY: 1,
+                                duration: 150,
+                                ease: 'Back.easeOut'
+                            });
+                            
+                        }
+                    }
+                });
+       }
+    }
+    //Because we want to see lower level runes less as the waves go up, this function accounts for that.
+    weightedRandomRune() {
+        const types = ['cooldown', 'damage', 'range'];
+        const levels = [1, 2, 3];
+        const type = Phaser.Utils.Array.GetRandom(types);
+        const level = Phaser.Utils.Array.GetRandom(levels);
+
+        const rune = new Rune(type, level, this, 100, 100, 'defaultRune');
+        rune.setDepth(500);
+        return rune;
+    }
 }
