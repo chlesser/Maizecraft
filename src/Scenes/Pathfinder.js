@@ -14,6 +14,7 @@ class Pathfinder extends Phaser.Scene {
         }
         this.currentTurret = null;
         this.currentRune = null;
+        this.isWaveRunning = false;
 
 
         //logic
@@ -165,6 +166,13 @@ class Pathfinder extends Phaser.Scene {
         else if (this.mode.RUNE) {
             this.handleRunemode(this.currentRune);
         }
+        //WAVE LOGIC
+        if (this.isWaveRunning) {
+            for(const hero of this.turrets)
+            {
+                hero.turret.update(this.enemies); // Update each turret's logic
+            }
+        }
     }
 
 
@@ -175,6 +183,7 @@ class Pathfinder extends Phaser.Scene {
         //clear any existing timers
         if (this.waveTimer) this.waveTimer.destroy();
         if (this.spawnInterval) this.spawnInterval.destroy();
+        this.isWaveRunning = true;
 
         console.log(`Starting Wave ${this.currentWave}`);
 
@@ -347,6 +356,7 @@ class Pathfinder extends Phaser.Scene {
 
     checkWaveComplete() {
     if (this.enemiesAlive <= 0 && this.enemiesInWave <= 0) {
+        this.isWaveRunning = false;
         this.waveComplete();
     }
 }
@@ -426,6 +436,7 @@ class Pathfinder extends Phaser.Scene {
         //set location and randomize
         this.randomizeNPC(npc);
         const turret = new Turret(type);
+        turret.tileSize = this.TILESIZE; // Set tile size based on scale
         npc.turret = turret;
 
 

@@ -18,6 +18,7 @@ class Turret {
 
         //engine calculations
         this.lastShotTime = 0;  //to track when the last shot was fired
+        this.tileSize = 16;
         this.tileX = 0; // Tile X position
         this.tileY = 0; // Tile Y position
         this.realX = 0; // Real X position
@@ -39,16 +40,70 @@ class Turret {
         this.updateStatsByType();
     }
 
-    update() {
+    //search for the closest enemy within range and attack... this differs between turret types
+    update(enemies) {
         // Update logic for the turret can be added here
-        this.searchForEnemy();
+        switch (this.type) {
+            case 'warrior':
+                this.updateWarrior(enemies);
+                break;
+            case 'archer':
+                this.updateArcher(enemies);
+                break;
+            case 'wizard':
+                this.updateWizard(enemies);
+                break;
+            default:
+                console.warn('Unknown turret type:', this.type);
+        }
+        this.searchForEnemy(enemies);
     }
-    searchForEnemy() {
-        // Logic to search for enemies in front of the turret
-        // This could involve checking the direction the turret is facing
-        // and detecting if any enemies are within a certain range.
-        console.log("Searching for enemies in front of the turret...");
+
+    updateWarrior(enemies) {
+        // Warrior turret logic
+        console.log('Updating Warrior turret');
+        let enemiesInRange = this.withinRange(enemies);
+        if(enemiesInRange.length > 0) {
+            for(let enemy of enemiesInRange) {
+                enemy.stats.health -= this.currentDamage; // Deal damage to the enemy
+                console.log(`Warrior turret attacked ${enemy.name} for ${this.currentDamage} damage.`);
+            }
+        }
     }
+    /*
+        Search For Enemy finds the closest enemy within range
+        WithinRange finds all enemies within range
+    */
+    searchForEnemy(enemies) {
+        let closest = null;
+        let closestIndex = Infinity; // Initialize closest distance to a large value
+        for(const enemy of enemies) {
+            let distance = Phaser.Math.Distance.Between(this.realX, this.realY, enemy.x, enemy.y);
+            distance /= this.tileSize; // Scale distance by tile size
+            if(distance < this.currentRange && enemies.indexOf(enemy) <= closestIndex) {
+                closestIndex = enemies.indexOf(enemy);
+                closest = enemy; // Update closest enemy
+            }
+        }
+        console.log(`Closest enemy found: ${closest ? closest.name : 'None'}`);
+        return closest;
+    }
+    withinRange(enemies) {
+        let closest = [];
+        for(const enemy of enemies) {
+            let distance = Phaser.Math.Distance.Between(this.realX, this.realY, enemy.x, enemy.y);
+            distance /= this.tileSize; // Scale distance by tile size
+            console.log(`Distance to ${enemy.name}: ${distance}`);
+            if(distance < this.currentRange) {
+                closest.push(enemy); // Add enemy to the list of enemies within range
+            }
+        }
+        console.log(`Closest enemy found: ${closest ? closest.name : 'None'}`);
+        return closest; // Return the list of enemies within range
+    }
+
+
+    //this is an initialization function that sets the base stats based on the turret type
     updateStatsByType() {
         // Update turret stats based on its type
         switch (this.type) {
@@ -205,7 +260,7 @@ class Turret {
         this.addVisualRune(incomingRune); // Add the visual rune to the turret
         return true;
     }
-    //This function returns a boolean indicating whether the rune was successfully added
+    //This function returns a boolean indicating whether the rune can be added or not.
     ensureSanity(level, runeType) {
         const MAXRUNES = 3;
         const MAXLEVEL = 3;
