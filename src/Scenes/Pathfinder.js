@@ -325,14 +325,14 @@ class Pathfinder extends Phaser.Scene {
 
     enemyDefeated(enemy) {
         //award corn
+        this.killedEnemies++;
         if (enemy.stats) {
             this.corn += enemy.stats.corn;
             console.log(`Enemy defeated! Awarded ${enemy.stats.corn} corn`);
             this.updateCornCounter(enemy.stats.corn); 
         } 
-        this.killedEnemies++;
-        this.enemies.splice(this.enemies.indexOf(enemy), 1); // Remove from enemies list
         this.despawnNPC(enemy);
+        this.enemies.splice(this.enemies.indexOf(enemy), 1); // Remove from enemies list
         enemy.destroy(); // Destroy the enemy object
     
         if (this.isWaveRunning) {
@@ -501,6 +501,7 @@ class Pathfinder extends Phaser.Scene {
     //handle enemies reaching the end
     enemyReachedEnd(npc) {
         console.log("Enemy reached the end!");
+        console.log(this.enemies.indexOf(npc));
         
         //reduce corn field health
         this.cornfieldhealth -= npc.stats ? npc.stats.damage : 1;
@@ -508,6 +509,7 @@ class Pathfinder extends Phaser.Scene {
         console.log(this.cornfieldhealth);
         
         this.despawnNPC(npc);
+        this.enemies.splice(this.enemies.indexOf(npc), 1); // Remove from enemies list
         npc.destroy(); // Destroy the enemy object
         this.checkWaveComplete();
     }

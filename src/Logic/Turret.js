@@ -111,8 +111,8 @@ class Turret {
         WithinRange finds all enemies within range
     */
     searchForEnemy(enemies) {
-        let closest = null;
-        let closestIndex = Infinity; // Initialize closest distance to a large value
+        let first = null;
+        let firstIndex = Infinity; // Initialize closest distance to a large value
         for(const enemy of enemies) {
             //make sure we dont go off the map
             if(enemy.x < 0 || enemy.x > this.tileSize * 40) {
@@ -120,12 +120,12 @@ class Turret {
             }
             let distance = Phaser.Math.Distance.Between(this.realX, this.realY, enemy.x, enemy.y);
             distance /= this.tileSize; // Scale distance by tile size
-            if(distance < this.currentRange && enemies.indexOf(enemy) <= closestIndex) {
-                closestIndex = enemies.indexOf(enemy);
-                closest = enemy; // Update closest enemy
+            if(distance < this.currentRange && enemies.indexOf(enemy) <= firstIndex) {
+                firstIndex = enemies.indexOf(enemy);
+                first = enemy; // Update closest enemy
             }
         }
-        return closest;
+        return first;
     }
     withinRange(enemies) {
         let closest = [];

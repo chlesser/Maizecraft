@@ -16,8 +16,11 @@ class Orb extends Phaser.GameObjects.Sprite {
             duration: this.flyTime, // Duration of the orb's flight
             ease: 'Linear',
             onComplete: () => {
-                enemy.takeDamage(this.damage);
-                this.destroy(); // Destroy the orb after it hits the enemy
+                if(enemy && enemy.takeDamage) // Check if enemy exists and has a takeDamage method
+                {
+                    enemy.takeDamage(this.damage);
+                }
+                this.destroy(); // Destroy the arrow after it hits the enemy
             }
         });
     }
