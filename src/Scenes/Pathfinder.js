@@ -535,7 +535,7 @@ class Pathfinder extends Phaser.Scene {
         enemy.on('destroy', () => {
             this.enemyDefeated(enemy);
         });
-        
+        this.enemies.push(enemy);
         return enemy;
     }
 
