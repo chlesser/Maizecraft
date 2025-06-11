@@ -237,8 +237,10 @@ class Pathfinder extends Phaser.Scene {
         const ppPerEnemy = Math.max(0.1 * powerPoints / 10, 1);
         if (this.currentWave == 1){
             this.enemiesInWave = 1;
+            const enemyCount = 1;
         }else{
             this.enemiesInWave = 10;
+            const enemyCount = 10;
         }
         
         this.spawnInterval = this.time.addEvent({
@@ -345,18 +347,23 @@ class Pathfinder extends Phaser.Scene {
     }
 
     enemyDefeated(enemy) {
-        //award corn
-        this.killedEnemies++;
-        if (enemy.stats) {
-            console.log(`Enemy defeated! Awarded ${enemy.stats.corn} corn`);
-            this.updateCornCounter(enemy.stats.corn); 
-        } 
-        this.despawnNPC(enemy);
-        this.enemies.splice(this.enemies.indexOf(enemy), 1); // Remove from enemies list
-        enemy.destroy(); // Destroy the enemy object
+        if (enemy.isDead) { // Extra protection
+            //award corn
+            this.despawnNPC(enemy);
+            this.enemies.splice(this.enemies.indexOf(enemy), 1); // Remove from enemies list
+            enemy.destroy(); // Destroy the enemy object
+
+            this.killedEnemies++;
+            if (enemy.stats) {
+                console.log(`Enemy defeated! Awarded ${enemy.stats.corn} corn`);
+                this.updateCornCounter(enemy.stats.corn); 
+            } 
+        
+            console.log(`Enemies defeated: ${this.killedEnemies}/${this.enemiesInWave}`);
     
-        if (this.isWaveRunning) {
-            this.checkWaveComplete();
+            if (this.isWaveRunning) {
+                this.checkWaveComplete();
+            }
         }
     }
 
@@ -576,19 +583,20 @@ class Pathfinder extends Phaser.Scene {
         return enemy;
     }
     enemyHit(enemy, damage) {
-        if (!enemy.isEnemy) return; // Ignore if not an enemy
-        
+        if (!enemy.isEnemy || enemy.isDead) return; // Ignore if not an enemy or already dead
+    
         enemy.stats.health -= damage;
-        
+    
         if (enemy.stats.health <= 0) {
+            enemy.isDead = true; // Mark as dead before processing
             this.enemyDefeated(enemy);
         } else {
-            this.flashRed(enemy); // Flash red to indicate damage
-            // Optionally, you can add a visual effect or sound here
+            //
         }
     }
     flashRed(npc) {
         // Flash the sprite red to indicate damage
+        //girl theres nothing here XD
 
     }
 
