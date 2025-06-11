@@ -41,6 +41,7 @@ class Pathfinder extends Phaser.Scene {
 
         //list of placed turrets
         this.turrets = [];
+        this.enemies = [];
     }
 
     preload() {
@@ -486,20 +487,20 @@ class Pathfinder extends Phaser.Scene {
 
     //handle enemies reaching the end
     enemyReachedEnd(npc) {
-    console.log("Enemy reached the end!");
-    
-    //reduce corn field health
-    this.cornfieldhealth -= npc.stats ? npc.stats.damage : 1;
-    console.log("damage " + npc.stats.damage);
-    console.log(this.cornfieldhealth);
-    
-    this.enemiesAlive--;
-    this.enemiesInWave--;
-    console.log(this.enemiesAlive);
-    
-    this.despawnNPC(npc);
-    this.checkWaveComplete();
-}
+        console.log("Enemy reached the end!");
+        
+        //reduce corn field health
+        this.cornfieldhealth -= npc.stats ? npc.stats.damage : 1;
+        console.log("damage " + npc.stats.damage);
+        console.log(this.cornfieldhealth);
+        
+        this.enemiesAlive--;
+        this.enemiesInWave--;
+        console.log(this.enemiesAlive);
+        
+        this.despawnNPC(npc);
+        this.checkWaveComplete();
+    }
 
     //mark enemies
     spawnEnemy(powerPoints, isBoss = false, miniBoss = false) {
