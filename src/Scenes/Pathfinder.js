@@ -14,7 +14,7 @@ class Pathfinder extends Phaser.Scene {
         }
         this.currentTurret = null;
         this.currentRune = null;
-
+        this.isWaveRunning = false;
 
         //logic
         this.cornfieldhealth = 10
@@ -22,8 +22,7 @@ class Pathfinder extends Phaser.Scene {
         
         
         this.currentWave = 1;
-        this.waveSet = 5; // Each set contains 5 waves
-        this.waveTimer = null;
+        this.waveSet = 5; //each set contains 5 waves
         this.spawnInterval = null;
         this.enemiesInWave = 0;
         this.enemiesAlive = 0;
@@ -172,47 +171,22 @@ class Pathfinder extends Phaser.Scene {
 
 
         startWave() {
-        //clear any existing timers
-        if (this.waveTimer) this.waveTimer.destroy();
+            if (this.isWaveRunning) return;
+        this.isWaveRunning = true;
         if (this.spawnInterval) this.spawnInterval.destroy();
 
         console.log(`Starting Wave ${this.currentWave}`);
-
-        //calculate power points for this wave
+    
         const powerPoints = Math.pow(2, this.currentWave);
-        
-        //determine wave type within the set of 5
-        const waveType = this.currentWave % 5 || 5; // 1-5
-        
+        const waveType = this.currentWave % 5 || 5;
+    
         switch (waveType) {
-            case 1:
-                this.spawnWaveType1(powerPoints);
-                console.log(1);
-                break;
-            case 2:
-                this.spawnWaveType2(powerPoints);
-                console.log(2);
-                break;
-            case 3: // miniboss
-                this.spawnWaveType3(powerPoints);
-                console.log(3);
-                break;
-            case 4: // horde
-                this.spawnWaveType4(powerPoints);
-                console.log(4);
-                break;
-            case 5: // boss
-                this.spawnWaveType5(powerPoints);
-                console.log(5);
-                break;
+        case 1: this.spawnWaveType1(powerPoints); break;
+        case 2: this.spawnWaveType2(powerPoints); break;
+        case 3: this.spawnWaveType3(powerPoints); break;
+        case 4: this.spawnWaveType4(powerPoints); break;
+        case 5: this.spawnWaveType5(powerPoints); break;
         }
-        
-        this.waveTimer = this.time.addEvent({
-            delay: 1000,
-            callback: this.checkWaveComplete,
-            callbackScope: this,
-            loop: true
-        });
     }
 
     spawnWaveType1(powerPoints) {
@@ -229,7 +203,7 @@ class Pathfinder extends Phaser.Scene {
             repeat: this.enemiesInWave - 1
         });
         
-        // Spawn first enemy immediately
+        //spawn first enemy immediately
         this.spawnEnemy(ppPerEnemy);
     }
 
@@ -261,7 +235,7 @@ class Pathfinder extends Phaser.Scene {
                     callbackScope: this,
                     repeat: 4
                 });
-                this.spawnEnemy(weakPP); // First weak enemy
+                this.spawnEnemy(weakPP); //first weak enemy
             },
             callbackScope: this
         });
@@ -308,12 +282,12 @@ class Pathfinder extends Phaser.Scene {
             this.spawnInterval.destroy();
         }
     
-    //spawn first enemy immediately
-    this.spawnEnemy(ppPerEnemy);
+        //spawn first enemy immediately
+        this.spawnEnemy(ppPerEnemy);
     
-    //spawn remaining enemies with interval
-    if (enemyCount > 1) {
-        this.spawnInterval = this.time.addEvent({
+        //spawn remaining enemies with interval
+        if (enemyCount > 1) {
+            this.spawnInterval = this.time.addEvent({
             delay: 300,
             callback: () => {
                 this.spawnEnemy(ppPerEnemy);
@@ -335,14 +309,17 @@ class Pathfinder extends Phaser.Scene {
     enemyDefeated(enemy) {
     this.enemiesAlive--;
     this.enemiesInWave--;
+        
     
         //award corn
         if (enemy.stats) {
         this.corn += enemy.stats.corn;
         console.log(`Enemy defeated! Awarded ${enemy.stats.corn} corn`);
-    }
+        } 
     
-    this.checkWaveComplete();
+    if (this.isWaveRunning) {
+        this.checkWaveComplete();
+    }
 }
 
     checkWaveComplete() {
@@ -353,17 +330,20 @@ class Pathfinder extends Phaser.Scene {
 
     waveComplete() {
         console.log(`Wave ${this.currentWave} complete!`);
-        
-        if (this.waveTimer) this.waveTimer.destroy();
-        if (this.spawnInterval) this.spawnInterval.destroy();
-        
-        this.currentWave++;
-        if (this.currentWave % 5 === 1) {
-            this.waveSet++;
+    this.isWaveRunning = false;
+    
+    // Cleanup (spawnInterval might still exist for wave types 2/3/4)
+    if (this.spawnInterval) this.spawnInterval.destroy();
+    
+    this.currentWave++;
+    if (this.currentWave % 5 === 1) this.waveSet++;
+    
+    // Start next wave after delay
+    this.time.delayedCall(5000, () => {
+        if (!this.isWaveRunning && this.scene) { // Safety checks
+            this.startWave();
         }
-        
-        //delay before next wave starts
-        this.time.delayedCall(5000, this.startWave, [], this);
+    }, [], this);
     }
 
 
