@@ -20,6 +20,17 @@ class Pathfinder extends Phaser.Scene {
         //logic
         this.cornfieldhealth = 10
         this.corn = 0;
+
+        //shop costs
+        this.shopCosts = {
+            warrior: 50,
+            archer: 100,
+            wizard: 300,
+            refresh: 50,
+            level1: 50,
+            level2: 250,
+            level3: 500,
+        }
         
         
         this.currentWave = 1;
@@ -126,6 +137,22 @@ class Pathfinder extends Phaser.Scene {
             if(pointer.rightButtonDown()) {
                 this.modeReset();
                 if(this.currentTurret != null) {
+                    switch (this.currentTurret.turret.type) {
+                        case 'warrior':
+                            this.corn += this.shopCosts.warrior;
+                            this.updateCornCounter(this.shopCosts.warrior); 
+                            break;
+                        case 'archer':
+                            this.corn += this.shopCosts.archer;
+                            this.updateCornCounter(this.shopCosts.archer); 
+                            break;
+                        case 'wizard':
+                            this.corn += this.shopCosts.wizard;
+                            this.updateCornCounter(this.shopCosts.wizard); 
+                            break;
+                        default:
+                            console.warn("Unknown turret type");
+                    }
                     this.currentTurret.destroy();
                     this.currentTurret = null;
                 }
@@ -956,9 +983,11 @@ class Pathfinder extends Phaser.Scene {
                 .setScrollFactor(0)
                 .setDepth(101)
                 .on('pointerdown', () => {
-                    this.currentTurret = this.spawnTurret(type);
-                    this.modeReset('PLACE');
-                    console.log(`Spawned turret of type: ${type}`);
+                    if(this.mode.DEFAULT) {
+                        this.currentTurret = this.spawnTurret(type);
+                        this.modeReset('PLACE');
+                        console.log(`Spawned turret of type: ${type}`);
+                    }
                 });
         });
 
