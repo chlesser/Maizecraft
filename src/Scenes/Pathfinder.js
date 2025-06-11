@@ -326,17 +326,17 @@ class Pathfinder extends Phaser.Scene {
         console.log(`Enemy defeated! Awarded ${enemy.stats.corn} corn`);
         } 
     
-    if (this.isWaveRunning) {
-        this.checkWaveComplete();
+        if (this.isWaveRunning) {
+            this.checkWaveComplete();
+        }
     }
-}
 
     checkWaveComplete() {
     if (this.enemiesAlive <= 0 && this.enemiesInWave <= 0) {
         this.isWaveRunning = false;
         this.waveComplete();
+        }
     }
-}
 
     waveComplete() {
         console.log(`Wave ${this.currentWave} complete!`);
