@@ -19,7 +19,18 @@ class Pathfinder extends Phaser.Scene {
 
         //logic
         this.cornfieldhealth = 10
-        this.corn = 0;
+        this.corn = 100;
+
+        //shop costs
+        this.shopCosts = {
+            warrior: 50,
+            archer: 100,
+            wizard: 300,
+            refresh: 50,
+            level1: 50,
+            level2: 250,
+            level3: 500,
+        }
         
         
         this.currentWave = 1;
@@ -126,6 +137,19 @@ class Pathfinder extends Phaser.Scene {
             if(pointer.rightButtonDown()) {
                 this.modeReset();
                 if(this.currentTurret != null) {
+                    switch (this.currentTurret.turret.type) {
+                        case 'warrior':
+                            this.updateCornCounter(this.shopCosts.warrior); 
+                            break;
+                        case 'archer':
+                            this.updateCornCounter(this.shopCosts.archer); 
+                            break;
+                        case 'wizard':
+                            this.updateCornCounter(this.shopCosts.wizard); 
+                            break;
+                        default:
+                            console.warn("Unknown turret type");
+                    }
                     this.currentTurret.destroy();
                     this.currentTurret = null;
                 }
@@ -199,11 +223,11 @@ class Pathfinder extends Phaser.Scene {
             const waveType = this.currentWave % 5 || 5;
     
             switch (waveType) {
-            case 1: this.spawnWaveType1(powerPoints); break;
-            case 2: this.spawnWaveType2(powerPoints); break;
-            case 3: this.spawnWaveType3(powerPoints); break;
-            case 4: this.spawnWaveType4(powerPoints); break;
-            case 5: this.spawnWaveType5(powerPoints); break;
+                case 1: this.spawnWaveType1(powerPoints); break;
+                case 2: this.spawnWaveType2(powerPoints); break;
+                case 3: this.spawnWaveType3(powerPoints); break;
+                case 4: this.spawnWaveType4(powerPoints); break;
+                case 5: this.spawnWaveType5(powerPoints); break;
             }
         }
 
@@ -324,7 +348,6 @@ class Pathfinder extends Phaser.Scene {
         //award corn
         this.killedEnemies++;
         if (enemy.stats) {
-            this.corn += enemy.stats.corn;
             console.log(`Enemy defeated! Awarded ${enemy.stats.corn} corn`);
             this.updateCornCounter(enemy.stats.corn); 
         } 
@@ -436,6 +459,7 @@ class Pathfinder extends Phaser.Scene {
             default:
                 this.randomizeNPC(npc);
         }
+        npc.setDepth(500); // Ensure turrets are drawn above other sprites
         const turret = new Turret(type, this);
         turret.tileSize = this.TILESIZE; // Set tile size based on scale
         npc.turret = turret;
@@ -540,7 +564,7 @@ class Pathfinder extends Phaser.Scene {
         if (isBoss) {
             enemy.setScale(2.2); //larger size
         }
-        if (miniBoss) {
+        else if (miniBoss) {
             enemy.setScale(1.8); //larger size
         }
         
@@ -799,6 +823,30 @@ class Pathfinder extends Phaser.Scene {
                 this.mode.DEFAULT = true;
         }
     }
+    /*
+        Helper function gets a cost from a type
+    */
+    getCost(type) {
+        switch (type) {
+            case 'warrior':
+                return this.shopCosts.warrior;
+            case 'archer':
+                return this.shopCosts.archer;
+            case 'wizard':
+                return this.shopCosts.wizard;
+            case 'refresh':
+                return this.shopCosts.refresh;
+            case 'level1':
+                return this.shopCosts.level1;
+            case 'level2':
+                return this.shopCosts.level2;
+            case 'level3':
+                return this.shopCosts.level3;
+            default:
+                console.warn("Unknown turret type");
+                return 0;
+        }
+    }
 
     /*
         HandlePlaceMode
@@ -850,6 +898,7 @@ class Pathfinder extends Phaser.Scene {
                     hero.turret.tileY = scaledY; // Set turret's tile position
                     hero.turret.realX = hero.x; // Set turret's real position
                     hero.turret.realY = hero.y; // Set turret's real position
+                    hero.setDepth(1); // Ensure turrets are drawn above other sprites
                     this.turrets.push(hero); // Add turret to the list of placed turrets
                 } else {
                     this.flashRed(hero); // Flash red to indicate tile is occupied
@@ -945,29 +994,64 @@ class Pathfinder extends Phaser.Scene {
             .setScrollFactor(0);
 
         // Button spacing settings
-        const iconSpacing = 48;
-        const startX = this.map.widthInPixels/2 + (7.5 * this.TILESIZE);
-        const y = this.map.heightInPixels/2 + (19.5 * this.TILESIZE);
+        const iconSpacing = 52;
+        const startX = this.map.widthInPixels/2 + (8.75 * this.TILESIZE);
+        const y = this.map.heightInPixels/2 + (21.5 * this.TILESIZE);
 
         // Turret types
-        const turretTypes = ['archer', 'warrior', 'wizard'];
+        const turretTypes = ['warrior', 'archer', 'wizard'];
 
         // make a button for each turret type
         turretTypes.forEach((type, i) => {
             const iconKey = `${type}Icon`; 
             const x = startX + i * iconSpacing;
 
+            //creating how much each costs
+            let cost = this.getCost(type);
+            let shopCornText = this.add.text(x - 2, y + 16, `🌽${cost}`, {
+                    fontSize: '12px',
+                    fill: '#fff',
+                    stroke: '#000',
+                    strokeThickness: 4,
+                }).setScrollFactor(0).setDepth(102).setOrigin(0.5, 0.5);
+            
             const button = this.add.image(x, y, iconKey)
-                .setDisplaySize(48, 48)  
+                .setDisplaySize(48, 64)  
                 .setInteractive()
-                .setOrigin(0, 0)
+                .setOrigin(0.5, 0.5)
                 .setScrollFactor(0)
                 .setDepth(101)
                 .on('pointerdown', () => {
-                    this.currentTurret = this.spawnTurret(type);
-                    this.modeReset('PLACE');
-                    console.log(`Spawned turret of type: ${type}`);
+                    if(this.corn < cost) {
+                        //shake the button if not enough corn
+                        this.tweens.add({
+                            targets: [button, shopCornText],
+                            x: button.x + 5,
+                            duration: 100,
+                            yoyo: true,
+                            ease: 'Back.easeIn',
+                            onComplete: () => {
+                            }
+                        });
+                    } else {
+                        button.setScale(0.8); // Scale down on click
+                        shopCornText.setScale(0.8); // Scale down the corn text
+                        this.updateCornCounter(-cost); // Update corn counter with negative value
+                        if(this.mode.DEFAULT) {
+                            this.currentTurret = this.spawnTurret(type);
+                            this.modeReset('PLACE');
+                            console.log(`Spawned turret of type: ${type}`);
+                        }
+                        this.tweens.add({
+                            targets: [button, shopCornText],
+                            scaleX: 1,
+                            scaleY: 1,
+                            duration: 150,
+                            ease: 'Back.easeOut'
+                        });
+                    }
                 });
+
         });
 
     }
@@ -989,6 +1073,7 @@ class Pathfinder extends Phaser.Scene {
 
     updateCornCounter(amount = 0) {
         // change font + corn photo later 
+        this.corn += amount; // Update corn count
         this.cornText.setText(`🌽 ${this.corn}`);
 
         // corn jumpscare animation
@@ -1023,8 +1108,8 @@ class Pathfinder extends Phaser.Scene {
                 ease: 'Cubic.easeOut',
                 onComplete: () => floatText.destroy()
             });
+        }
     }
-}
 
 
 }
