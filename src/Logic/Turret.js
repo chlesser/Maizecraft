@@ -43,11 +43,13 @@ class Turret {
     //search for the closest enemy within range and attack... this differs between turret types
     update(enemies) {
         const now = Date.now();
+        console.log("date now: ", now);
         const timeSinceLastShot = now - this.lastShotTime;
         if (timeSinceLastShot < this.currentCooldown) {
             return; // Still in cooldown, do not attack
         }
         this.lastShotTime = now;
+
         // Update logic for the turret can be added here
         switch (this.type) {
             case 'warrior':
@@ -72,7 +74,6 @@ class Turret {
         if(enemiesInRange.length > 0) {
             for(let enemy of enemiesInRange) {
                 enemy.takeDamage(this.currentDamage); // Deal damage to the enemy
-                this.lastShotTime = 0; // Reset last shot time
             }
         }
     }
@@ -81,7 +82,6 @@ class Turret {
         let enemy = this.searchForEnemy(enemies);
         if(enemy != null) {
             enemy.takeDamage(this.currentDamage); // Deal damage to the enemy
-            this.lastShotTime = 0; // Reset last shot time
         }
     }
     updateWizard(enemies) {
@@ -89,7 +89,6 @@ class Turret {
         let enemy = this.searchForEnemy(enemies);
         if(enemy != null) {
             enemy.takeDamage(this.currentDamage); // Deal damage to the enemy
-            this.lastShotTime = 0; // Reset last shot time
         }
     }
     /*
@@ -258,7 +257,7 @@ class Turret {
         return true;
     }
 
-    
+
     //This function returns a boolean indicating whether the rune can be added or not.
     ensureSanity(level, runeType) {
         const MAXRUNES = 3;
