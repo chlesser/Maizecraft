@@ -74,6 +74,7 @@ class Turret {
         let enemiesInRange = this.withinRange(enemies);
         if(enemiesInRange.length > 0) {
             for(let enemy of enemiesInRange) {
+                if(!enemy) continue; // Skip if enemy is null or undefined
                 enemy.takeDamage(this.currentDamage); // Deal damage to the enemy
             }
         }
