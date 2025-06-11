@@ -42,6 +42,12 @@ class Turret {
 
     //search for the closest enemy within range and attack... this differs between turret types
     update(enemies) {
+        const now = Date.now();
+        const timeSinceLastShot = now - this.lastShotTime;
+        if (timeSinceLastShot < this.currentCooldown) {
+            return; // Still in cooldown, do not attack
+        }
+        this.lastShotTime = now;
         // Update logic for the turret can be added here
         switch (this.type) {
             case 'warrior':
@@ -61,11 +67,14 @@ class Turret {
 
     updateWarrior(enemies) {
         // Warrior turret logic
-        console.log('Updating Warrior turret');
         let enemiesInRange = this.withinRange(enemies);
         if(enemiesInRange.length > 0) {
             for(let enemy of enemiesInRange) {
                 enemy.stats.health -= this.currentDamage; // Deal damage to the enemy
+                if(enemy.stats.health <= 0) {
+                    enemy.deathAction(); // Trigger perish event if health is 0 or less
+                }
+                this.lastShotTime = 0; // Reset last shot time
                 console.log(`Warrior turret attacked ${enemy.name} for ${this.currentDamage} damage.`);
             }
         }
@@ -78,6 +87,10 @@ class Turret {
         let closest = null;
         let closestIndex = Infinity; // Initialize closest distance to a large value
         for(const enemy of enemies) {
+            //make sure we dont go off the map
+            if(enemy.x < 0 || enemy.x > this.tileSize * 40) {
+                continue; // Skip enemies that are out of bounds
+            }
             let distance = Phaser.Math.Distance.Between(this.realX, this.realY, enemy.x, enemy.y);
             distance /= this.tileSize; // Scale distance by tile size
             if(distance < this.currentRange && enemies.indexOf(enemy) <= closestIndex) {
@@ -85,20 +98,21 @@ class Turret {
                 closest = enemy; // Update closest enemy
             }
         }
-        console.log(`Closest enemy found: ${closest ? closest.name : 'None'}`);
         return closest;
     }
     withinRange(enemies) {
         let closest = [];
         for(const enemy of enemies) {
+            //make sure we dont go off the map
+            if(enemy.x < 0 || enemy.x > this.tileSize * 40) {
+                continue; // Skip enemies that are out of bounds
+            }
             let distance = Phaser.Math.Distance.Between(this.realX, this.realY, enemy.x, enemy.y);
             distance /= this.tileSize; // Scale distance by tile size
-            console.log(`Distance to ${enemy.name}: ${distance}`);
             if(distance < this.currentRange) {
                 closest.push(enemy); // Add enemy to the list of enemies within range
             }
         }
-        console.log(`Closest enemy found: ${closest ? closest.name : 'None'}`);
         return closest; // Return the list of enemies within range
     }
 

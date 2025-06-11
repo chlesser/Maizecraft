@@ -26,7 +26,6 @@ class Pathfinder extends Phaser.Scene {
         this.waveSet = 5; //each set contains 5 waves
         this.spawnInterval = null;
         this.enemiesInWave = 0;
-        this.enemiesAlive = 0;
         
         //enemy stats
         this.enemyStats = {
@@ -165,6 +164,11 @@ class Pathfinder extends Phaser.Scene {
             {
                 hero.turret.update(this.enemies); // Update each turret's logic
             }
+            // for(let enemy of this.enemies) {
+            //     if (enemy.stats.health <= 0) {
+            //         this.enemyDefeated(enemy);
+            //     }
+            // }
         }
     }
 
@@ -278,7 +282,6 @@ class Pathfinder extends Phaser.Scene {
     
         //set the total enemies for this wave
         this.enemiesInWave = enemyCount;
-        this.enemiesAlive = 0; //reset alive counter
     
         //clear any existing interval
         if (this.spawnInterval) {
@@ -310,15 +313,15 @@ class Pathfinder extends Phaser.Scene {
     }
 
     enemyDefeated(enemy) {
-    this.enemiesAlive--;
-    this.enemiesInWave--;
-        
-    
         //award corn
         if (enemy.stats) {
-        this.corn += enemy.stats.corn;
-        console.log(`Enemy defeated! Awarded ${enemy.stats.corn} corn`);
+            this.corn += enemy.stats.corn;
+            console.log(`Enemy defeated! Awarded ${enemy.stats.corn} corn`);
         } 
+        this.enemies.splice(this.enemies.indexOf(enemy), 1); // Remove from enemies list
+        this.despawnNPC(enemy);
+        console.log(`Enemy defeated! Remaining enemies: ${this.enemies.length}`);
+        enemy.destroy(); // Destroy the enemy object
     
         if (this.isWaveRunning) {
             this.checkWaveComplete();
@@ -326,7 +329,7 @@ class Pathfinder extends Phaser.Scene {
     }
 
     checkWaveComplete() {
-    if (this.enemiesAlive <= 0 && this.enemiesInWave <= 0) {
+    if (this.enemies.length === 0) {
         this.isWaveRunning = false;
         this.waveComplete();
         }
@@ -482,11 +485,8 @@ class Pathfinder extends Phaser.Scene {
         console.log("damage " + npc.stats.damage);
         console.log(this.cornfieldhealth);
         
-        this.enemiesAlive--;
-        this.enemiesInWave--;
-        console.log(this.enemiesAlive);
-        
         this.despawnNPC(npc);
+        npc.destroy(); // Destroy the enemy object
         this.checkWaveComplete();
     }
 
@@ -510,7 +510,6 @@ class Pathfinder extends Phaser.Scene {
         enemy.stats = stats;
         enemy.isBoss = isBoss;
         enemy.currentPathIndex = 0; 
-        this.enemiesAlive++;
         
         //Visual indication for bosses
         if (isBoss) {
@@ -521,9 +520,12 @@ class Pathfinder extends Phaser.Scene {
         }
         
         //track enemy death
-        enemy.on('destroy', () => {
+        enemy.deathAction = () => {
             this.enemyDefeated(enemy);
-        });
+        };
+        // enemy.on('perish', () => {
+        //     this.enemyDefeated(enemy);
+        // });
         this.enemies.push(enemy);
         return enemy;
     }
