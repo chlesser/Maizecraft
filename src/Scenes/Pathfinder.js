@@ -141,7 +141,7 @@ class Pathfinder extends Phaser.Scene {
 
         // TO DO
         // this.createHealthBar();
-        // this.createCornCounter();
+        this.createCornCounter();
     }
 
     update() {
@@ -180,6 +180,7 @@ class Pathfinder extends Phaser.Scene {
                 hero.turret.update(this.enemies); // Update each turret's logic
             }
         }
+
     }
 
 
@@ -327,6 +328,7 @@ class Pathfinder extends Phaser.Scene {
         if (enemy.stats) {
             this.corn += enemy.stats.corn;
             console.log(`Enemy defeated! Awarded ${enemy.stats.corn} corn`);
+            this.updateCornCounter(enemy.stats.corn); 
         } 
         this.killedEnemies++;
         this.enemies.splice(this.enemies.indexOf(enemy), 1); // Remove from enemies list
@@ -966,4 +968,60 @@ class Pathfinder extends Phaser.Scene {
         });
 
     }
+
+    createCornCounter() {
+        this.cornText = this.add.text(this.map.widthInPixels/2 + this.TILESIZE, this.map.heightInPixels/2 + this.TILESIZE, `🌽 ${this.corn}`, {
+            fontSize: '20px',
+            fill: '#fff',
+            stroke: '#000',
+        strokeThickness: 4,
+        shadow: {
+            offsetX: 2,
+            offsetY: 2,
+            color: '#444',
+            blur: 2,
+            stroke: true
+        }}).setScrollFactor(0);
+    }
+
+    updateCornCounter(amount = 0) {
+        // change font + corn photo later 
+        this.cornText.setText(`🌽 ${this.corn}`);
+
+        // corn jumpscare animation
+        this.cornText.setScale(1);
+        this.tweens.add({
+            targets: this.cornText,
+            scaleX: 1.08,
+            scaleY: 1.08,
+            duration: 80,
+            yoyo: true,
+            ease: 'Back.easeOut'
+        });
+
+        // corn pizazz
+        if (amount > 0) {
+            const floatText = this.add.text(this.cornText.x + 80, this.cornText.y +20, `+${amount}`, {
+                fontSize: '18px',
+                fontStyle: 'bold',
+                fill: '#ffff66',
+                stroke: '#000',
+                strokeThickness: 2
+            })
+            .setScrollFactor(0)
+            .setDepth(201)
+            .setOrigin(0.5);
+
+            this.tweens.add({
+                targets: floatText,
+                y: floatText.y - 30,
+                alpha: 0,
+                duration: 800,
+                ease: 'Cubic.easeOut',
+                onComplete: () => floatText.destroy()
+            });
+    }
+}
+
+
 }
