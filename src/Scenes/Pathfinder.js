@@ -287,6 +287,7 @@ class Pathfinder extends Phaser.Scene {
         this.wizardSpecial = [this.sound.add('m7', {loop: false,volume: 1  }), this.sound.add('m8', {loop: false,volume: 1  }), this.sound.add('m9', {loop: false,volume: 1  })];
 
         this.ambiance = this.sound.add('ambiance', {loop: false,volume: .07  });
+        this.popFromShopSound = this.sound.add('pop', {loop: false,volume: .05  });
     }
 
     create() {
@@ -1244,6 +1245,7 @@ class Pathfinder extends Phaser.Scene {
                             this.updateCornCounter(-cost); // Update corn counter with negative value
                             this.currentTurret = this.spawnTurret(type);
                             this.modeReset('PLACE');
+                            this.popFromShopSound.play(); // Play sound when spawning turret
                             console.log(`Spawned turret of type: ${type}`);
                             this.tweens.add({
                             targets: [button, shopCornText],
@@ -1583,6 +1585,7 @@ class Pathfinder extends Phaser.Scene {
                             this.currentRune = rune; // Example turret type
                             this.removedPos = this.shopRunes.indexOf(rune); // Get the index of the rune being purchased
                             this.tweens.killTweensOf(rune); // Stop any existing tweens on the rune
+                            this.popFromShopSound.play(); // Play sound when spawning turret
                             this.shopRunes[this.shopRunes.indexOf(rune)] = null; // Remove rune from shop
                             this.modeReset('RUNE');
                             button.input.enabled = false; // Disable button interaction

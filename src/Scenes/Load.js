@@ -127,6 +127,7 @@ class Load extends Phaser.Scene {
         this.load.audio('a', 'arrow.mp3');
         this.load.audio('wi', 'magic.mp3');
         this.load.audio('wa', 'swipe.mp3');
+        this.load.audio('pop', 'Effects/Pop.wav');
 
     }
 
