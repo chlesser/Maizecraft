@@ -159,7 +159,6 @@ class Pathfinder extends Phaser.Scene {
                     }
                     this.currentRune = null;
                     this.removedPos = -1; // Reset removed position
-                    console.log(this.shopRunes)
                 }
             }
         })
@@ -1246,7 +1245,6 @@ class Pathfinder extends Phaser.Scene {
             });
             this.shopRunes = [];
             this.removedPos = null; // Reset removed position
-            console.log("Shop runes cleared.");
         }
         // Generate new runes
         let newRunes = [];
@@ -1261,7 +1259,6 @@ class Pathfinder extends Phaser.Scene {
         this.updateShopVisuals();
     }
     updateShopVisuals() {
-        console.log(this.shopRunes)
         for(let i = 0; i < this.shopSlots.length; i++) {
         console.log(`Adding rune to slot ${i}`);
             let rune = this.shopRunes[i];
@@ -1310,7 +1307,6 @@ class Pathfinder extends Phaser.Scene {
                             this.removedPos = this.shopRunes.indexOf(rune); // Get the index of the rune being purchased
                             this.tweens.killTweensOf(rune); // Stop any existing tweens on the rune
                             this.shopRunes[this.shopRunes.indexOf(rune)] = null; // Remove rune from shop
-                            console.log(this.shopRunes);
                             this.modeReset('RUNE');
                             button.input.enabled = false; // Disable button interaction
                             this.tweens.add({
@@ -1325,7 +1321,6 @@ class Pathfinder extends Phaser.Scene {
                     }
                 });
        }
-       console.log(this.shopRunes)
     }
     //Because we want to see lower level runes less as the waves go up, this function accounts for that.
     weightedRandomRune() {
