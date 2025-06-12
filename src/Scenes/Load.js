@@ -55,6 +55,7 @@ class Load extends Phaser.Scene {
         this.load.image('runeBackground', 'EmptyBack.png');
         this.load.image('buttonBackground', 'buttonBack.png');
         this.load.image('refreshIcon', 'refreshIcon.png');
+        this.load.image('range', 'RangeSample.png');
         this.load.image('backSprite', 'back.png')
 
         //fix path

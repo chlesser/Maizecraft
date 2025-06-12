@@ -16,7 +16,6 @@ class Pathfinder extends Phaser.Scene {
         this.currentRune = null;
         this.isWaveRunning = false;
 
-
         //logic
         this.cornfieldhealth = 10
         this.corn = 100;
@@ -58,6 +57,8 @@ class Pathfinder extends Phaser.Scene {
         //list of placed turrets
         this.turrets = [];
         this.enemies = [];
+
+        this.rangeView = null; // Range view for turrets
     }
 
     preload() {
@@ -141,6 +142,7 @@ class Pathfinder extends Phaser.Scene {
                 if(this.currentTurret != null) {
                     const concat = "" + this.currentTurret.turret.type;
                     this.updateCornCounter(this.getCost(concat));
+                    this.rangeView.setVisible(false);
                     this.currentTurret.destroy();
                     this.currentTurret = null;
                 }
@@ -159,6 +161,8 @@ class Pathfinder extends Phaser.Scene {
                 }
             }
         })
+
+        this.rangeView = this.add.image(0, 0, 'range').setVisible(false).setDepth(1);
 
         // functions to create UI
         this.createUI();
@@ -811,6 +815,7 @@ class Pathfinder extends Phaser.Scene {
         switch (newMode) {
             case 'PLACE':
                 this.mode.PLACE = true;
+                this.rangeView.setVisible(true);
                 break;
             case 'RUNE':
                 this.mode.RUNE = true;
@@ -876,6 +881,11 @@ class Pathfinder extends Phaser.Scene {
             //also, the hero is now visible
             hero.setVisible(true);
 
+            //we set the range view to the hero's position
+            this.rangeView.setPosition(scaledX, scaledY);
+            this.rangeView.setScale(hero.turret.currentRange); // Scale range view based on turret range
+            this.rangeView.setVisible(true); // Show range view when placing turret
+
             //finally, we start to detect if the cursor is pressed
             if (this.pointer.isDown && this.pointer.leftButtonDown()) {
                 //first off, let's get a bool to see if that tile is occupied.
@@ -894,6 +904,7 @@ class Pathfinder extends Phaser.Scene {
                     hero.turret.tileY = scaledY; // Set turret's tile position
                     hero.turret.realX = hero.x; // Set turret's real position
                     hero.turret.realY = hero.y; // Set turret's real position
+                    this.rangeView.setVisible(false);
                     hero.setDepth(1); // Ensure turrets are drawn above other sprites
                     this.turrets.push(hero); // Add turret to the list of placed turrets
                 } else {
