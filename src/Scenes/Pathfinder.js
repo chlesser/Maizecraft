@@ -266,11 +266,7 @@ class Pathfinder extends Phaser.Scene {
             blendMode: 'ADD', //this makes it look scrum asf
             }).setDepth(1000);
         this.vfx.wizardblast.stop();
-    }
 
-    create() {
-        this.init();
-        //orcsounds
         this.o1 = this.sound.add('o1', {loop: false,volume: 1  }); //boss special on hit
         this.o2 = this.sound.add('o2', {loop: false,volume: 1  });
         this.o3 = this.sound.add('o3', {loop: false,volume: 1  }); //boss special on hit
@@ -281,6 +277,11 @@ class Pathfinder extends Phaser.Scene {
         this.o8 = this.sound.add('o8', {loop: false,volume: 1  });
         this.o9 = this.sound.add('o9', {loop: false,volume: 1  });
         this.ambiance = this.sound.add('ambiance', {loop: false,volume: .07  });
+    }
+
+    create() {
+        //this.init();
+        //orcsounds
 
     }
 
