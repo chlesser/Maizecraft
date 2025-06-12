@@ -286,7 +286,7 @@ class Pathfinder extends Phaser.Scene {
         this.wizardNormal = [this.sound.add('m1', {loop: false,volume: 1  }), this.sound.add('m2', {loop: false,volume: 1  }), this.sound.add('m3', {loop: false,volume: 1  }), this.sound.add('m4', {loop: false,volume: 1  }), this.sound.add('m5', {loop: false,volume: 1  }), this.sound.add('m6', {loop: false,volume: 1  })];
         this.wizardSpecial = [this.sound.add('m7', {loop: false,volume: 1  }), this.sound.add('m8', {loop: false,volume: 1  }), this.sound.add('m9', {loop: false,volume: 1  })];
 
-        this.ambiance = this.sound.add('ambiancept2', {loop: false,volume: .07  });
+        this.ambiance = this.sound.add('ambiancept2', {loop: false,volume: .04  });
         this.popFromShopSound = this.sound.add('pop', {loop: false,volume: .05  });
         this.crunchSound = this.sound.add('crunch', {loop: false,volume: .05  });
 
