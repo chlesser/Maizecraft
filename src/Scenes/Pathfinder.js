@@ -173,8 +173,8 @@ class Pathfinder extends Phaser.Scene {
     }
 
     update() {
-        if (Phaser.Input.Keyboard.JustDown(this.keys.P)) {
-            this.populateShop();
+        if (Phaser.Input.Keyboard.JustDown(this.keys.P) && Phaser.Input.Keyboard.JustDown(this.keys.R)) {
+            this.updateCornCounter(1000); // Add 1000 corn for testing
         }
         if (Phaser.Input.Keyboard.JustDown(this.keys.D)) {
             this.startWave();
