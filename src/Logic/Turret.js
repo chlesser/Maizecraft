@@ -61,7 +61,7 @@ class Turret {
 
     //search for the closest enemy within range and attack... this differs between turret types
     update(enemies) {
-        const now = Date.now();
+        this.now = Date.now();
         const timeSinceLastShot = now - this.lastShotTime;
         if (timeSinceLastShot < this.currentCooldown) {
             return; // Still in cooldown, do not attack
@@ -89,7 +89,7 @@ class Turret {
         let enemiesInRange = this.withinRange(enemies);
         if(enemiesInRange.length > 0) {
             for(let enemy of enemiesInRange) {
-                this.lastShotTime = now;
+                this.lastShotTime = this.now;
                 if(enemy == null) continue; // Skip if neemy is null or undefined
                 this.swipe.play();
                 this.vfx.slash.setPosition(enemy.x, enemy.y);
@@ -103,7 +103,7 @@ class Turret {
         let enemy = this.searchForEnemy(enemies);
         if(enemy != null) {
             this.arrow1.play();
-            this.lastShotTime = now;
+            this.lastShotTime = this.now;
             let arrow = new Arrow({
                 scene: this.scene,
                 x: this.realX,
@@ -119,7 +119,7 @@ class Turret {
         let enemy = this.searchForEnemy(enemies);
         if(enemy != null) {
             this.spell1.play();
-            this.lastShotTime = now;
+            this.lastShotTime = this.now;
             let orb = new Orb({
                 scene: this.scene,
                 x: this.realX,
