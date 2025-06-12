@@ -72,7 +72,7 @@ class Load extends Phaser.Scene {
 
         //My beautiful projectiles
         this.load.image("arrowTexture", "Projectiles/Arrow.png");
-        this.load.image("orbTexture", "Projectiles/orb.png");
+        this.load.image("orbTexture", "Projectiles/Orb.png");
 
 
         //my more beautiful particles
