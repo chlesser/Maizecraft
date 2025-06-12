@@ -116,6 +116,9 @@ class Load extends Phaser.Scene {
         this.load.audio('o8', 'orc-grunt3.wav');
         this.load.audio('o9', 'orc-dying.wav');
 
+        //bg
+        this.load.audio('ambiance', 'ambiance.mp3');
+
     }
 
     create() {
