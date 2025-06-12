@@ -2,8 +2,11 @@ class Lose extends Phaser.Scene {
   constructor() {
     super('loseScene');
   }
-
   create() {
+
+  }
+
+  init(data) {
 
     const { width, height } = this.scale;
 
@@ -11,7 +14,7 @@ class Lose extends Phaser.Scene {
     this.add.image(width / 2, height / 2, "theend").setDisplaySize(1280, 800);
 
     // Game title
-    this.add.bitmapText(width / 2, height / 2 - 250, "pixelFont", "Maizecraft", 150).setOrigin(0.5);
+    this.add.bitmapText(width / 2, height / 2 - 250, "pixelFont", 'You made it to round ' + data.wave, 150).setOrigin(0.5);
 
 
     // Play Button

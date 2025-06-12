@@ -1435,6 +1435,10 @@ class Pathfinder extends Phaser.Scene {
     updateHealthCounter(amount = 0) {
         amount = Math.trunc(amount);
         this.cornfieldhealth += amount;
+        if(this.cornfieldhealth <= 0) {
+            this.cornfieldhealth = 0; // Prevent negative health
+            this.scene.start('loseScene', { score: this.corn, wave: this.currentWave });
+        }
 
         this.healthText.setText(`${this.cornfieldhealth}`);
 
