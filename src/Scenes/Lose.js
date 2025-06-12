@@ -23,7 +23,8 @@ class Lose extends Phaser.Scene {
         .setInteractive();
 
     playButton.on('pointerdown', () => {
-      this.scene.start('titleScene');
+        this.scene.start('titleScene');
+      //location.reload();
     });
     }
     
