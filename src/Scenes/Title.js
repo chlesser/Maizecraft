@@ -97,7 +97,11 @@ class Title extends Phaser.Scene {
 
         const bodyText = this.add.bitmapText(0, -20, 'pixelFont',
             "Place turrets to stop waves of\n" +
-            "enemies and protect your corn farm.\n",
+            "enemies and protect your corn farm!\n" +
+            "\n" +
+            "Grey runes are lvl 1, blue are lvl 2,\n" +
+            "Black are level 3! They increase range,\n" +
+            "damage, and fire rate.\n" + "Good Luck!\n",
             24
         ).setOrigin(0.5);
 
