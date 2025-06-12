@@ -267,6 +267,8 @@ class Pathfinder extends Phaser.Scene {
             }).setDepth(1000);
         this.vfx.wizardblast.stop();
 
+        //AUDIO
+
         this.o1 = this.sound.add('o1', {loop: false,volume: 1  }); //boss special on hit
         this.o2 = this.sound.add('o2', {loop: false,volume: 1  });
         this.o3 = this.sound.add('o3', {loop: false,volume: 1  }); //boss special on hit
@@ -276,6 +278,14 @@ class Pathfinder extends Phaser.Scene {
         this.o7 = this.sound.add('o7', {loop: false,volume: 1  });
         this.o8 = this.sound.add('o8', {loop: false,volume: 1  });
         this.o9 = this.sound.add('o9', {loop: false,volume: 1  });
+
+        this.warriorNormal = [this.sound.add('w1', {loop: false,volume: 1  }), this.sound.add('w2', {loop: false,volume: 1  }), this.sound.add('w3', {loop: false,volume: 1  }), this.sound.add('w4', {loop: false,volume: 1  })]
+        this.warriorSpecial = [this.sound.add('w5', {loop: false,volume: 1  }), this.sound.add('w6', {loop: false,volume: 1  })];
+        this.archerNormal = [this.sound.add('a1', {loop: false,volume: 1  }), this.sound.add('a2', {loop: false,volume: 1  }), this.sound.add('a3', {loop: false,volume: 1  }), this.sound.add('a4', {loop: false,volume: 1  })];
+        this.archerSpecial = [this.sound.add('a5', {loop: false,volume: 1  }), this.sound.add('a6', {loop: false,volume: 1  })];
+        this.wizardNormal = [this.sound.add('m1', {loop: false,volume: 1  }), this.sound.add('m2', {loop: false,volume: 1  }), this.sound.add('m3', {loop: false,volume: 1  }), this.sound.add('m4', {loop: false,volume: 1  }), this.sound.add('m5', {loop: false,volume: 1  }), this.sound.add('m6', {loop: false,volume: 1  })];
+        this.wizardSpecial = [this.sound.add('m7', {loop: false,volume: 1  }), this.sound.add('m8', {loop: false,volume: 1  }), this.sound.add('m9', {loop: false,volume: 1  })];
+
         this.ambiance = this.sound.add('ambiance', {loop: false,volume: .07  });
     }
 
@@ -596,6 +606,44 @@ class Pathfinder extends Phaser.Scene {
         });
         return npc;
     }
+    playASound(type, id)
+    {
+        switch (type) {
+            case 'warrior':
+                if(id == 1)
+                {
+                    const sound = Phaser.Utils.Array.GetRandom(this.warriorNormal);
+                    sound.play();
+                } else {
+                    const sound = Phaser.Utils.Array.GetRandom(this.warriorSpecial);
+                    sound.play();
+                }
+                break;
+            case 'archer':
+                if(id == 1)
+                {
+                    const sound = Phaser.Utils.Array.GetRandom(this.archerNormal);
+                    sound.play();
+                } else {
+                    const sound = Phaser.Utils.Array.GetRandom(this.archerSpecial);
+                    sound.play();
+                }
+                break;
+            case 'wizard':
+                if(id == 1)
+                {
+                    const sound = Phaser.Utils.Array.GetRandom(this.wizardNormal);
+                    sound.play();
+                } else {
+                    const sound = Phaser.Utils.Array.GetRandom(this.wizardSpecial);
+                    sound.play();
+                }
+                break;
+            default:
+                console.warn(`Unknown sound type: ${type}`);
+                break;
+        }
+    }
     /*
         SpawnRune spawns a rune of a random type and a random level, at 100, 100.
         Input --> None
@@ -718,12 +766,12 @@ class Pathfinder extends Phaser.Scene {
         if (enemy.stats.health <= 0) {
             enemy.isDead = true; // Mark as dead before processing
             if  (this.currentWave % 5 == 0) {this.o1.play();}else{
-                if (this.o5.isPlaying) {
+                // if (this.o5.isPlaying) {
                     this.o5.stop();
-                }
-                if (!this.o9.isPlaying) {
+                // }
+                // if (!this.o9.isPlaying) {
                     this.o9.play();
-                }
+                // }
             }
             this.enemyDefeated(enemy);
             this.updateEnemiesCounter();
@@ -1054,6 +1102,7 @@ class Pathfinder extends Phaser.Scene {
                     hero.turret.tileY = scaledY; // Set turret's tile position
                     hero.turret.realX = hero.x; // Set turret's real position
                     hero.turret.realY = hero.y; // Set turret's real position
+                    this.playASound(hero.turret.type, 1); // Play turret placement sound
                     this.rangeView.setVisible(false);
                     hero.setDepth(1); // Ensure turrets are drawn above other sprites
                     this.turrets.push(hero); // Add turret to the list of placed turrets
@@ -1111,6 +1160,7 @@ class Pathfinder extends Phaser.Scene {
                         let executionResult = friend.turret.addRune(rune);
                         //this is upon success
                         if(executionResult) {
+                            this.playASound(friend.turret.type, 2); // Play turret placement sound
                             this.currentRune.setDepth(3);
                             this.currentRune = null; // Clear current rune reference
                             this.modeReset(); // Exit rune mode after placing
