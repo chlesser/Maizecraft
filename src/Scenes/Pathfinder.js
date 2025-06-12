@@ -328,6 +328,7 @@ class Pathfinder extends Phaser.Scene {
 
         startWave() {
             if (!this.ambiance.isPlaying) {
+                if(this.lobby.isPlaying) this.lobby.stop();
                     this.ambiance.play();
             }
             if (this.isWaveRunning) return;
