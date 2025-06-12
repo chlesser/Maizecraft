@@ -1,0 +1,17 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: #7baf27; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: url('assets/UI/cursor.png'), auto; /* change cursor */
+}
+
+canvas {
+    display: block;
+    border: 8px solid #f7eb7b;    
+    border-radius: 10px;           
+    box-shadow: 0 0 20px #eef3df;  
+}
