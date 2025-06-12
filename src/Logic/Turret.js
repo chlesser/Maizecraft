@@ -51,6 +51,12 @@ class Turret {
             blendMode: 'ADD',
         }).setDepth(1000);
         this.vfx.slash.stop();
+
+        this.arrow1 = scene.sound.add('a', {loop: false, volume: 0.07});
+        this.spell1 = scene.sound.add('wi', {loop: false, volume: 0.07});
+        this.swipe = scene.sound.add('wa', {loop: false, volume: 0.1});
+
+        
     }
 
     //search for the closest enemy within range and attack... this differs between turret types
@@ -86,6 +92,7 @@ class Turret {
         if(enemiesInRange.length > 0) {
             for(let enemy of enemiesInRange) {
                 if(!enemy) continue; // Skip if enemy is null or undefined
+                this.swipe.play();
                 this.vfx.slash.setPosition(enemy.x, enemy.y);
                 this.vfx.slash.emitParticle(1);
                 enemy.takeDamage(this.currentDamage); // Deal damage to the enemy
@@ -96,6 +103,7 @@ class Turret {
         // Archer turret logic
         let enemy = this.searchForEnemy(enemies);
         if(enemy != null) {
+            this.arrow1.play();
             let arrow = new Arrow({
                 scene: this.scene,
                 x: this.realX,
@@ -110,6 +118,7 @@ class Turret {
         // Wizard turret logic
         let enemy = this.searchForEnemy(enemies);
         if(enemy != null) {
+            this.spell1.play();
             let orb = new Orb({
                 scene: this.scene,
                 x: this.realX,
@@ -173,9 +182,9 @@ class Turret {
                 this.baseCooldown = 800;
                 break;
             case 'wizard':
-                this.baseDamage = 15;
+                this.baseDamage = 30;
                 this.baseRange = 13;
-                this.baseCooldown = 4000;
+                this.baseCooldown = 3000;
                 break;
             default:
                 console.warn('Unknown turret type:', this.type);

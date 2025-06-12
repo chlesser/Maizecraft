@@ -79,6 +79,54 @@ class Load extends Phaser.Scene {
         this.load.image("s2", "kenney_particle-pack/twirl_02.png");
         this.load.image("wiz", "kenney_particle-pack/spark_01.png");
 
+        //sounds ;_;
+        this.load.setPath("./assets/audioassets");
+
+        //warrior
+        this.load.audio('w1', 'gruff-mysword.wav');
+        this.load.audio('w2', 'gruff-notmycob.wav');
+        this.load.audio('w3', 'gruff-nice.wav');
+        this.load.audio('w4', 'kid-realmengotowar.wav');
+        this.load.audio('w5', 'kid-imissmymom.wav');
+        this.load.audio('w6', 'kid-alright.wav');
+
+        //archer
+        this.load.audio('a1', 'mario-pierced.wav');
+        this.load.audio('a2', 'mario-stickya.wav');
+        this.load.audio('a3', 'mario-yahoo.wav');
+        this.load.audio('a4', 'irish-pierced.wav');
+        this.load.audio('a5', 'irish-stickya.wav');
+        this.load.audio('a6', 'irish-incredible.wav');
+
+        //wizard
+        this.load.audio('w1', 'senile-sharethecorn.wav');
+        this.load.audio('w2', 'senile-takealive.wav');
+        this.load.audio('w3', 'senile-gibberish.wav');
+        this.load.audio('w5', 'nerd-sharecorn.wav');
+        this.load.audio('w6', 'nerd-takealive.wav');
+        this.load.audio('w7', 'nerd-magicmike.wav');
+        this.load.audio('w8', 'eww.wav');
+        this.load.audio('w9', 'loseapixel.wav');
+        this.load.audio('w10', 'didyourmomdressyou.wav');
+
+        //orc
+        this.load.audio('o1', 'godfather-eughh.wav');
+        this.load.audio('o2', 'godfather-offer.wav');
+        this.load.audio('o3', 'godfather-ouch.wav');
+        this.load.audio('o4', 'godfather-owie.wav');
+        this.load.audio('o5', 'godfathertakecorn.wav');
+        this.load.audio('o6', 'orc-grunt1.wav');
+        this.load.audio('o7', 'orc-grunt2.wav');
+        this.load.audio('o8', 'orc-grunt3.wav');
+        this.load.audio('o9', 'orc-dying.wav');
+
+        //bg
+        this.load.audio('ambiance', 'ambiance.mp3');
+
+        //sound effects
+        this.load.audio('a', 'arrow.mp3');
+        this.load.audio('wi', 'magic.mp3');
+        this.load.audio('wa', 'swipe.mp3');
 
     }
 

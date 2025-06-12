@@ -266,10 +266,23 @@ class Pathfinder extends Phaser.Scene {
             blendMode: 'ADD', //this makes it look scrum asf
             }).setDepth(1000);
         this.vfx.wizardblast.stop();
+
+        this.o1 = this.sound.add('o1', {loop: false,volume: 1  }); //boss special on hit
+        this.o2 = this.sound.add('o2', {loop: false,volume: 1  });
+        this.o3 = this.sound.add('o3', {loop: false,volume: 1  }); //boss special on hit
+        this.o4 = this.sound.add('o4', {loop: false,volume: 1  }); //boss special on hit
+        this.o5 = this.sound.add('o5', {loop: false,volume: 1  });//Tony
+        this.o6 = this.sound.add('o6', {loop: false,volume: 1  }); 
+        this.o7 = this.sound.add('o7', {loop: false,volume: 1  });
+        this.o8 = this.sound.add('o8', {loop: false,volume: 1  });
+        this.o9 = this.sound.add('o9', {loop: false,volume: 1  });
+        this.ambiance = this.sound.add('ambiance', {loop: false,volume: .07  });
     }
 
     create() {
         //this.init();
+        //orcsounds
+
     }
 
     update() {
@@ -302,13 +315,16 @@ class Pathfinder extends Phaser.Scene {
 
 
         startWave() {
+            if (!this.ambiance.isPlaying) {
+                    this.ambiance.play();
+            }
             if (this.isWaveRunning) return;
             this.isWaveRunning = true;
             if (this.spawnInterval) this.spawnInterval.destroy();
             this.isWaveRunning = true;
 
             console.log(`Starting Wave ${this.currentWave}`);
-    
+
             const powerPoints = 2 * this.currentWave
             const waveType = this.currentWave % 5 || 5;
     
@@ -441,6 +457,7 @@ class Pathfinder extends Phaser.Scene {
 
         //spawn boss
         this.spawnEnemy(bossPP, true, false);
+        this.o5.play();
         this.updateEnemiesCounter();
     }
 
@@ -687,9 +704,27 @@ class Pathfinder extends Phaser.Scene {
         if (!enemy.isEnemy || enemy.isDead) return; // Ignore if not an enemy or already dead
     
         enemy.stats.health -= damage;
+
+        if (this.currentWave % 5 === 0) { // in theory this happens on boss levels
+            // Randomly select one of the boss sounds only after hes done his tony bit
+         if (!this.o5.isPlaying) {
+            const bossSounds = ['o3', 'o4'];
+            const randomSound = bossSounds[Math.floor(Math.random() * bossSounds.length)];
+            this[randomSound].play();
+         }
+        
+        }
     
         if (enemy.stats.health <= 0) {
             enemy.isDead = true; // Mark as dead before processing
+            if  (this.currentWave % 5 == 0) {this.o1.play();}else{
+                if (this.o5.isPlaying) {
+                    this.o5.stop();
+                }
+                if (!this.o9.isPlaying) {
+                    this.o9.play();
+                }
+            }
             this.enemyDefeated(enemy);
             this.updateEnemiesCounter();
         } else {
