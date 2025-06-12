@@ -153,11 +153,13 @@ class Pathfinder extends Phaser.Scene {
                     if (this.removedPos >= 0 && this.removedPos < this.shopRunes.length) {
                         this.shopRunes[this.removedPos] = this.currentRune;
                         this.shopSlots[this.removedPos].button.input.enabled = true; // Re-enable the button
+                        this.shopSlots[this.removedPos].button.removeAllListeners();
                         this.currentRune.setAlpha(1);
                         this.updateShopVisuals();
                     }
                     this.currentRune = null;
                     this.removedPos = -1; // Reset removed position
+                    console.log(this.shopRunes)
                 }
             }
         })
@@ -1219,8 +1221,14 @@ class Pathfinder extends Phaser.Scene {
         const existing = this.shopRunes.length > 0; //this is a bool that determines if the shop is already populated
         // Clear existing runes if shop is already populated
         if (existing) {
-            this.shopRunes.forEach(rune => rune.destroy());
+            this.shopRunes.forEach(rune => {
+                if(rune !== null) {
+                    rune.destroy(); // Destroy existing runes
+                }
+            });
             this.shopRunes = [];
+            this.removedPos = null; // Reset removed position
+            console.log("Shop runes cleared.");
         }
         // Generate new runes
         let newRunes = [];
@@ -1229,20 +1237,25 @@ class Pathfinder extends Phaser.Scene {
             rune.setDepth(500);
             newRunes.push(rune);
         }
+
         // Add new runes to the shop
         this.shopRunes = newRunes;
         this.updateShopVisuals();
     }
     updateShopVisuals() {
+        console.log(this.shopRunes)
         for(let i = 0; i < this.shopSlots.length; i++) {
         console.log(`Adding rune to slot ${i}`);
-            let button = this.shopSlots[i].button;
-            let text = this.shopSlots[i].cornText;
             let rune = this.shopRunes[i];
             if(rune === null) {
                 console.log(`No rune available for slot ${i}`);
                 continue; // Skip if no rune available
             }
+            let button = this.shopSlots[i].button;
+            let text = this.shopSlots[i].cornText;
+
+            button.input.enabled = true; // Enable button interaction
+            button.removeAllListeners(); // Remove previous listeners to avoid stacking
 
             let cost = this.getCost(`level${rune.level}`); // Get cost based on rune level
             text.setText(`🌽${cost}`); // Update the text with the cost
@@ -1277,7 +1290,9 @@ class Pathfinder extends Phaser.Scene {
                             this.updateCornCounter(-cost); // Update corn counter with negative value
                             this.currentRune = rune; // Example turret type
                             this.removedPos = this.shopRunes.indexOf(rune); // Get the index of the rune being purchased
-                            this.shopRunes[rune] = null; // Remove rune from shop
+                            this.tweens.killTweensOf(rune); // Stop any existing tweens on the rune
+                            this.shopRunes[this.shopRunes.indexOf(rune)] = null; // Remove rune from shop
+                            console.log(this.shopRunes);
                             this.modeReset('RUNE');
                             button.input.enabled = false; // Disable button interaction
                             this.tweens.add({
@@ -1292,6 +1307,7 @@ class Pathfinder extends Phaser.Scene {
                     }
                 });
        }
+       console.log(this.shopRunes)
     }
     //Because we want to see lower level runes less as the waves go up, this function accounts for that.
     weightedRandomRune() {
