@@ -188,7 +188,7 @@ class Pathfinder extends Phaser.Scene {
         });
 
         //delete later
-        this.keys = this.input.keyboard.addKeys('SPACE,P,R');
+        this.keys = this.input.keyboard.addKeys('SPACE,P,R,L');
         this.pointer = this.input.activePointer;
         
         //Right click to reset mode and destroy current turret/rune
@@ -308,7 +308,7 @@ class Pathfinder extends Phaser.Scene {
     }
 
     update() {
-        if (Phaser.Input.Keyboard.JustDown(this.keys.P) && Phaser.Input.Keyboard.JustDown(this.keys.R)) {
+        if (Phaser.Input.Keyboard.JustDown(this.keys.P) && Phaser.Input.Keyboard.JustDown(this.keys.L)) {
             this.updateCornCounter(1000); // Add 1000 corn for testing
         }
         if (Phaser.Input.Keyboard.JustDown(this.keys.SPACE) && this.startText.visible) {
