@@ -182,9 +182,9 @@ class Turret {
                 this.baseCooldown = 800;
                 break;
             case 'wizard':
-                this.baseDamage = 15;
+                this.baseDamage = 30;
                 this.baseRange = 13;
-                this.baseCooldown = 4000;
+                this.baseCooldown = 3000;
                 break;
             default:
                 console.warn('Unknown turret type:', this.type);

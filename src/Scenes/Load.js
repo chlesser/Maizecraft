@@ -55,10 +55,14 @@ class Load extends Phaser.Scene {
         this.load.image('buttonBackground', 'buttonBack.png');
         this.load.image('refreshIcon', 'refreshIcon.png');
         this.load.image('range', 'RangeSample.png');
-        this.load.image('backSprite', 'back.png')
+        this.load.image('backSprite', 'back.png');
+        this.load.image('heartIcon', 'heartIcon.png');
+        this.load.image('enemyIcon', 'enemyIcon.png');
+        this.load.image('waveIcon', 'waveIcon.png');
 
         // beautiful new fancy font
         this.load.bitmapFont("pixelFont", "font.png", "font.fnt");
+        this.load.bitmapFont("blackPixelFont", "font-black.png", "font.fnt");
         // title card background image
         this.load.image("titleBg", "TitleBg.png");
 
@@ -81,29 +85,29 @@ class Load extends Phaser.Scene {
         //warrior
         this.load.audio('w1', 'gruff-mysword.wav');
         this.load.audio('w2', 'gruff-notmycob.wav');
-        this.load.audio('w3', 'gruff-nice.wav');
-        this.load.audio('w4', 'kid-realmengotowar.wav');
-        this.load.audio('w5', 'kid-imissmymom.wav');
+        this.load.audio('w3', 'kid-realmengotowar.wav');
+        this.load.audio('w4', 'kid-imissmymom.wav');
+        this.load.audio('w5', 'gruff-nice.wav');
         this.load.audio('w6', 'kid-alright.wav');
 
         //archer
         this.load.audio('a1', 'mario-pierced.wav');
         this.load.audio('a2', 'mario-stickya.wav');
-        this.load.audio('a3', 'mario-yahoo.wav');
-        this.load.audio('a4', 'irish-pierced.wav');
-        this.load.audio('a5', 'irish-stickya.wav');
+        this.load.audio('a3', 'irish-pierced.wav');
+        this.load.audio('a4', 'irish-stickya.wav');
+        this.load.audio('a5', 'mario-yahoo.wav');
         this.load.audio('a6', 'irish-incredible.wav');
 
         //wizard
-        this.load.audio('w1', 'senile-sharethecorn.wav');
-        this.load.audio('w2', 'senile-takealive.wav');
-        this.load.audio('w3', 'senile-gibberish.wav');
-        this.load.audio('w5', 'nerd-sharecorn.wav');
-        this.load.audio('w6', 'nerd-takealive.wav');
-        this.load.audio('w7', 'nerd-magicmike.wav');
-        this.load.audio('w8', 'eww.wav');
-        this.load.audio('w9', 'loseapixel.wav');
-        this.load.audio('w10', 'didyourmomdressyou.wav');
+        this.load.audio('m1', 'senile-sharethecorn.wav');
+        this.load.audio('m2', 'senile-takealive.wav');
+        this.load.audio('m3', 'nerd-sharecorn.wav');
+        this.load.audio('m4', 'nerd-takealive.wav');
+        this.load.audio('m5', 'loseapixel.wav');
+        this.load.audio('m6', 'didyourmomdressyou.wav');
+        this.load.audio('m7', 'senile-gibberish.wav');
+        this.load.audio('m8', 'nerd-magicmike.wav');
+        this.load.audio('m9', 'eww.wav');
 
         //orc
         this.load.audio('o1', 'godfather-eughh.wav');
