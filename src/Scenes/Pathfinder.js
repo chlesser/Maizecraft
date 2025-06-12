@@ -65,12 +65,68 @@ class Pathfinder extends Phaser.Scene {
     preload() {
         this.load.spritesheet('chars', 'assets/chars.png');
     }
+    init() {
+        this.vfx = {}; 
 
-    create() {
-        // Initialize properties
-        this.modeReset();
+        // npc pool
+        this.npcPool = null;
+        this.TURRET_SCALE = 2; // Scale for turret sprites
+
+        // modes
+        this.mode = {
+            PLACE: false,
+            RUNE: false,
+            DEFAULT: true
+        }
         this.currentTurret = null;
         this.currentRune = null;
+        this.isWaveRunning = false;
+
+        //logic
+        this.cornfieldhealth = 10
+        this.corn = 50;
+
+        //shop costs
+        this.shopCosts = {
+            warrior: 50,
+            archer: 100,
+            wizard: 300,
+            refresh: 25,
+            level1: 50,
+            level2: 200,
+            level3: 500,
+        }
+        this.shopSlots = []; //contains a reference to the shop button
+        this.shopRunes = []; //rune objects in the shop
+        this.removedPos = -1;
+        
+        this.currentWave = 1;
+        this.waveSet = 5; //each set contains 5 waves
+        this.spawnInterval = null;
+        this.enemiesInWave = 0;
+        this.killedEnemies = 0;
+        
+        //enemy stats
+        this.enemyStats = {
+            speed: (x) =>  0.1 * x + 1,
+            health: (x) => 15 * Math.exp(0.1 * x) - 10,
+            damage: (x) => 0.1 * x + 1,
+            corn: (x) => 10 * x
+        };
+
+        //map properties
+        this.TILESIZE = 16;
+        this.SCALE = 2.0;
+        this.TILEWIDTH = 40;
+        this.TILEHEIGHT = 25;
+
+        //list of placed turrets
+        this.turrets = [];
+        this.enemies = [];
+
+        this.rangeView = null; // Range view for turrets
+
+        this.modeReset();
         
         //Initialize tilemap 
         this.map = this.add.tilemap("maizecraft-map", this.TILESIZE, this.TILESIZE);
@@ -211,7 +267,10 @@ class Pathfinder extends Phaser.Scene {
             blendMode: 'ADD', //this makes it look scrum asf
             }).setDepth(1000);
         this.vfx.wizardblast.stop();
+    }
 
+    create() {
+        this.init();
     }
 
     update() {
