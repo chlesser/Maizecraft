@@ -296,7 +296,7 @@ class Pathfinder extends Phaser.Scene {
 
         const { width, height } = this.scale;
 
-        this.startText = this.add.bitmapText(width / 4, height / 4 - 100, "pixelFont", "Press SPACE to start!", 50).setOrigin(0.5);
+        this.startText = this.add.bitmapText(width / 4, height / 4 - 100, "pixelFont", "Press SPACE to start!\n Press R to restart!", 50).setOrigin(0.5);
         this.startText.setVisible(true);
         this.startText.setDepth(1000);
         this.startText.setTint(0x000000); // Yellow tint for visibility
@@ -314,6 +314,9 @@ class Pathfinder extends Phaser.Scene {
         if (Phaser.Input.Keyboard.JustDown(this.keys.SPACE) && this.startText.visible) {
             this.startText.setVisible(false);
             this.startWave();
+        }
+        if(Phaser.Input.Keyboard.JustDown(this.keys.R)) {
+            location.reload();
         }
         //HANDLE GLOBAL MODE UPDATING
         if(this.mode.PLACE)
