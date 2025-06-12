@@ -9,6 +9,18 @@ class Orb extends Phaser.GameObjects.Sprite {
         this.setOrigin(0.5, 0.5); // Set the origin to the center of the sprite
         this.scene.add.existing(this);
 
+        this.vfx = {};
+        this.vfx.trail = this.scene.add.particles(0, 0, 'wiz', {
+            scale: { start: .05, end: 0 },
+            lifespan: 100,
+            speed: 20,
+            blendMode: 'ADD',
+        }).setDepth(1000);
+
+        this.vfx.trail.startFollow(this); // Make particles follow the orb
+        this.vfx.trail.start();
+
+
         this.scene.tweens.add({
             targets: this,
             x: enemy.x,
@@ -20,9 +32,11 @@ class Orb extends Phaser.GameObjects.Sprite {
                 {
                     enemy.takeDamage(this.damage);
                 }
+                this.vfx.trail.stop();
                 this.destroy(); // Destroy the arrow after it hits the enemy
             }
         });
+
     }
 
 }

@@ -65,12 +65,68 @@ class Pathfinder extends Phaser.Scene {
     preload() {
         this.load.spritesheet('chars', 'assets/chars.png');
     }
+    init() {
+        this.vfx = {}; 
 
-    create() {
-        // Initialize properties
-        this.modeReset();
+        // npc pool
+        this.npcPool = null;
+        this.TURRET_SCALE = 2; // Scale for turret sprites
+
+        // modes
+        this.mode = {
+            PLACE: false,
+            RUNE: false,
+            DEFAULT: true
+        }
         this.currentTurret = null;
         this.currentRune = null;
+        this.isWaveRunning = false;
+
+        //logic
+        this.cornfieldhealth = 10
+        this.corn = 50;
+
+        //shop costs
+        this.shopCosts = {
+            warrior: 50,
+            archer: 100,
+            wizard: 300,
+            refresh: 25,
+            level1: 50,
+            level2: 200,
+            level3: 500,
+        }
+        this.shopSlots = []; //contains a reference to the shop button
+        this.shopRunes = []; //rune objects in the shop
+        this.removedPos = -1;
+        
+        this.currentWave = 1;
+        this.waveSet = 5; //each set contains 5 waves
+        this.spawnInterval = null;
+        this.enemiesInWave = 0;
+        this.killedEnemies = 0;
+        
+        //enemy stats
+        this.enemyStats = {
+            speed: (x) =>  0.1 * x + 1,
+            health: (x) => 15 * Math.exp(0.1 * x) - 10,
+            damage: (x) => 0.1 * x + 1,
+            corn: (x) => 10 * x
+        };
+
+        //map properties
+        this.TILESIZE = 16;
+        this.SCALE = 2.0;
+        this.TILEWIDTH = 40;
+        this.TILEHEIGHT = 25;
+
+        //list of placed turrets
+        this.turrets = [];
+        this.enemies = [];
+
+        this.rangeView = null; // Range view for turrets
+
+        this.modeReset();
         
         //Initialize tilemap 
         this.map = this.add.tilemap("maizecraft-map", this.TILESIZE, this.TILESIZE);
@@ -197,10 +253,12 @@ class Pathfinder extends Phaser.Scene {
         // TO DO
         // this.createHealthBar();
         this.createCornCounter();
+        this.createHealthCounter();
+        this.createWaveCounter();
+        this.createEnemiesCounter();
 
         //particles yeah in the main file because i hate you guys
         this.vfx.wizardblast = this.add.particles(0, 0, 'sparkle', {
-            frame: 'sparkle',
             scale: { start: 0.05, end: 0 },
             lifespan: 300,
             speed: { min: 50, max: 150 },
@@ -208,7 +266,10 @@ class Pathfinder extends Phaser.Scene {
             blendMode: 'ADD', //this makes it look scrum asf
             }).setDepth(1000);
         this.vfx.wizardblast.stop();
+    }
 
+    create() {
+        //this.init();
     }
 
     update() {
@@ -264,13 +325,15 @@ class Pathfinder extends Phaser.Scene {
         //Wave 1:
         
         const ppPerEnemy = Math.max(0.1 * powerPoints / 10, 1);
+        let enemyCount = 1; // Default to 1 enemy for wave 1
         if (this.currentWave == 1){
             this.enemiesInWave = 1;
-            const enemyCount = 1;
+            enemyCount = 1;
         }else{
             this.enemiesInWave = 10;
-            const enemyCount = 10;
+            enemyCount = 10;
         }
+
         
         this.spawnInterval = this.time.addEvent({
             delay: 1200,
@@ -278,8 +341,9 @@ class Pathfinder extends Phaser.Scene {
                 this.spawnEnemy(ppPerEnemy);
             },
             callbackScope: this,
-            repeat: this.enemiesInWave - 1
+            repeat: enemyCount - 1
         });
+        this.updateEnemiesCounter();
         }
 
         spawnWaveType2(powerPoints) {
@@ -312,6 +376,7 @@ class Pathfinder extends Phaser.Scene {
             },
             callbackScope: this
         });
+        this.updateEnemiesCounter();
     }
 
     spawnWaveType3(powerPoints) {
@@ -338,6 +403,7 @@ class Pathfinder extends Phaser.Scene {
             },
             callbackScope: this
         });
+        this.updateEnemiesCounter();
     }
 
     spawnWaveType4(powerPoints) {
@@ -365,6 +431,7 @@ class Pathfinder extends Phaser.Scene {
             repeat: enemyCount - 1
         });
     }
+    this.updateEnemiesCounter();
 }
 
     spawnWaveType5(powerPoints) {
@@ -374,6 +441,7 @@ class Pathfinder extends Phaser.Scene {
 
         //spawn boss
         this.spawnEnemy(bossPP, true, false);
+        this.updateEnemiesCounter();
     }
 
     enemyDefeated(enemy) {
@@ -415,6 +483,7 @@ class Pathfinder extends Phaser.Scene {
         if (this.spawnInterval) this.spawnInterval.destroy();
     
         this.currentWave++;
+        this.updateWaveCounter();
         if (this.currentWave % 5 === 1) this.waveSet++;
     
         // Start next wave after delay
@@ -566,7 +635,7 @@ class Pathfinder extends Phaser.Scene {
         this.killedEnemies++;
     
         //reduce corn field health
-        this.cornfieldhealth -= npc.stats ? npc.stats.damage : 1;
+        this.updateHealthCounter(-(npc.stats ? npc.stats.damage : 1));
         console.log(`Cornfield health: ${this.cornfieldhealth}`);
     
         this.despawnNPC(npc);
@@ -622,6 +691,7 @@ class Pathfinder extends Phaser.Scene {
         if (enemy.stats.health <= 0) {
             enemy.isDead = true; // Mark as dead before processing
             this.enemyDefeated(enemy);
+            this.updateEnemiesCounter();
         } else {
             //
         }
@@ -1257,6 +1327,99 @@ class Pathfinder extends Phaser.Scene {
                 onComplete: () => floatText.destroy()
             });
         }
+    }
+    createHealthCounter() {
+        this.healthText = this.add.text(890, 516, `❤️ ${this.cornfieldhealth}`, {
+            fontSize: '20px',
+            fill: '#fff',
+            stroke: '#000',
+        strokeThickness: 4,
+        shadow: {
+            offsetX: 2,
+            offsetY: 2,
+            color: '#444',
+            blur: 2,
+            stroke: true
+        }}).setScrollFactor(0).setDepth(200).setOrigin(0.5);
+    }
+
+    updateHealthCounter(amount = 0) {
+        // change font + corn photo later 
+        amount = Math.trunc(amount);
+
+        this.cornfieldhealth += amount; // Update corn count
+        this.healthText.setText(`❤️ ${this.cornfieldhealth}`);
+
+        // corn jumpscare animation
+        this.healthText.setScale(1);
+        this.tweens.add({
+            targets: this.healthText,
+            scaleX: 1.08,
+            scaleY: 1.08,
+            duration: 80,
+            yoyo: true,
+            ease: 'Back.easeOut'
+        });
+    }
+    createWaveCounter() {
+        this.waveText = this.add.text(890, 540, `☠️ ${this.currentWave}`, {
+            fontSize: '20px',
+            fill: '#fff',
+            stroke: '#000',
+        strokeThickness: 4,
+        shadow: {
+            offsetX: 2,
+            offsetY: 2,
+            color: '#444',
+            blur: 2,
+            stroke: true
+        }}).setScrollFactor(0).setDepth(200).setOrigin(0.5);
+    }
+
+    updateWaveCounter() {
+        // change font + corn photo later 
+        this.waveText.setText(`☠️ ${this.currentWave}`);
+
+        // corn jumpscare animation
+        this.waveText.setScale(1);
+        this.tweens.add({
+            targets: this.waveText,
+            scaleX: 1.08,
+            scaleY: 1.08,
+            duration: 80,
+            yoyo: true,
+            ease: 'Back.easeOut'
+        });
+    }
+    createEnemiesCounter() {
+        this.enemyText = this.add.text(890, 566, `😈 ${this.killedEnemies}/${this.enemiesInWave}`, {
+            fontSize: '20px',
+            fill: '#fff',
+            stroke: '#000',
+        strokeThickness: 4,
+        shadow: {
+            offsetX: 2,
+            offsetY: 2,
+            color: '#444',
+            blur: 2,
+            stroke: true
+        }}).setScrollFactor(0).setDepth(200).setOrigin(0.5);
+    }
+
+    updateEnemiesCounter() {
+        // change font + corn photo later 
+        this.enemyText.setText(`😈 ${this.killedEnemies}/${this.enemiesInWave}`);
+
+        // corn jumpscare animation
+        this.enemyText.setScale(1);
+        this.tweens.add({
+            targets: this.enemyText,
+            scaleX: 1.08,
+            scaleY: 1.08,
+            duration: 80,
+            yoyo: true,
+            ease: 'Back.easeOut'
+        });
     }
     /*
         This function populates the rune shop
