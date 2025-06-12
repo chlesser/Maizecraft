@@ -19,7 +19,7 @@ class Pathfinder extends Phaser.Scene {
 
         //logic
         this.cornfieldhealth = 10
-        this.corn = 100;
+        this.corn = 50;
 
         //shop costs
         this.shopCosts = {
@@ -138,6 +138,7 @@ class Pathfinder extends Phaser.Scene {
         //Right click to reset mode and destroy current turret/rune
         this.input.on('pointerdown', (pointer) => {
             if(pointer.rightButtonDown()) {
+                this.rangeView.setVisible(false);
                 this.modeReset();
                 if(this.currentTurret != null) {
                     const concat = "" + this.currentTurret.turret.type;
@@ -159,6 +160,31 @@ class Pathfinder extends Phaser.Scene {
                     }
                     this.currentRune = null;
                     this.removedPos = -1; // Reset removed position
+                }
+            } else{
+                if(this.mode.DEFAULT)
+                {
+                    const tileX = Math.floor(this.pointer.worldX / this.TILESIZE);
+                    const tileY = Math.floor(this.pointer.worldY / this.TILESIZE);
+                    let scaledX = ((Math.trunc(tileX / this.TURRET_SCALE) + 0.5) * this.TILESIZE * this.TURRET_SCALE);
+                    let scaledY = ((Math.trunc(tileY / this.TURRET_SCALE) + 0.5) * this.TILESIZE * this.TURRET_SCALE);
+
+                    let found = false;
+                    for(const friend of this.turrets) {
+                        if (friend.turret.tileX === scaledX && friend.turret.tileY === scaledY)
+                        {
+                            found = true;
+                            this.rangeView.setPosition(scaledX, scaledY);
+                            this.rangeView.setScale(friend.turret.currentRange / 2); // Scale range view based on turret range
+                            this.rangeView.setVisible(true); // Show range view when placing turret
+                        }
+                    }
+                    if (!found) {
+                        this.rangeView.setVisible(false);
+                    }
+                }
+                else {
+                    this.rangeView.setVisible(false);
                 }
             }
         })
@@ -902,7 +928,7 @@ class Pathfinder extends Phaser.Scene {
 
             //we set the range view to the hero's position
             this.rangeView.setPosition(scaledX, scaledY);
-            this.rangeView.setScale(hero.turret.currentRange); // Scale range view based on turret range
+            this.rangeView.setScale(hero.turret.currentRange / 2); // Scale range view based on turret range
             this.rangeView.setVisible(true); // Show range view when placing turret
 
             //finally, we start to detect if the cursor is pressed
@@ -1193,6 +1219,8 @@ class Pathfinder extends Phaser.Scene {
 
     updateCornCounter(amount = 0) {
         // change font + corn photo later 
+        amount = Math.trunc(amount);
+
         this.corn += amount; // Update corn count
         this.cornText.setText(`🌽 ${this.corn}`);
 
