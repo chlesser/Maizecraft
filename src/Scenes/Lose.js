@@ -8,7 +8,7 @@ class Lose extends Phaser.Scene {
     const { width, height } = this.scale;
 
     // title card background image
-    this.add.image(width / 2, height / 2, "titleBg").setDisplaySize(1280, 800);
+    this.add.image(width / 2, height / 2, "theend").setDisplaySize(1280, 800);
 
     // Game title
     this.add.bitmapText(width / 2, height / 2 - 250, "pixelFont", "Maizecraft", 150).setOrigin(0.5);

@@ -65,6 +65,7 @@ class Load extends Phaser.Scene {
         this.load.bitmapFont("blackPixelFont", "font-black.png", "font.fnt");
         // title card background image
         this.load.image("titleBg", "TitleBg.png");
+        this.load.image("theend", "blackdeath.png");
 
         //fix path
         this.load.setPath("./assets/");
