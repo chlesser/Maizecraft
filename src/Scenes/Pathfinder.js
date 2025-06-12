@@ -717,6 +717,9 @@ class Pathfinder extends Phaser.Scene {
         if (enemy.stats.health <= 0) {
             enemy.isDead = true; // Mark as dead before processing
             if  (this.currentWave % 5 == 0) {this.o1.play();}else{
+                if (this.o5.isPlaying) {
+                    this.o5.stop();
+                }
                 if (!this.o9.isPlaying) {
                     this.o9.play();
                 }
