@@ -119,6 +119,11 @@ class Load extends Phaser.Scene {
         //bg
         this.load.audio('ambiance', 'ambiance.mp3');
 
+        //sound effects
+        this.load.audio('a', 'arrow.mp3');
+        this.load.audio('wi', 'magic.mp3');
+        this.load.audio('wa', 'swipe.mp3');
+
     }
 
     create() {
