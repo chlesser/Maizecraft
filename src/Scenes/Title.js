@@ -20,6 +20,7 @@ class Title extends Phaser.Scene {
         .setInteractive();
 
     playButton.on('pointerdown', () => {
+      this.sound.removeAll();
       this.scene.start('pathfinderScene');
     });
 
