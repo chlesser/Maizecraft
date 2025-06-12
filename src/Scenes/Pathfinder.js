@@ -290,6 +290,10 @@ class Pathfinder extends Phaser.Scene {
         this.ambiance = this.sound.add('ambiancept2', {loop: false,volume: .07  });
         this.popFromShopSound = this.sound.add('pop', {loop: false,volume: .05  });
         this.crunchSound = this.sound.add('crunch', {loop: false,volume: .05  });
+
+        if (!this.ambiance.isPlaying) {
+                this.ambiance.play();
+        }
     }
 
     create() {
@@ -328,10 +332,6 @@ class Pathfinder extends Phaser.Scene {
 
 
         startWave() {
-            if (!this.ambiance.isPlaying) {
-                if(this.lobby.isPlaying) this.lobby.stop();
-                    this.ambiance.play();
-            }
             if (this.isWaveRunning) return;
             this.isWaveRunning = true;
             if (this.spawnInterval) this.spawnInterval.destroy();
