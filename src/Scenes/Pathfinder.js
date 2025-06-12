@@ -83,7 +83,7 @@ class Pathfinder extends Phaser.Scene {
         this.isWaveRunning = false;
 
         //logic
-        this.cornfieldhealth = 1
+        this.cornfieldhealth = 10;
         this.corn = 50;
 
         //shop costs
@@ -686,7 +686,7 @@ class Pathfinder extends Phaser.Scene {
         const dx = nextPoint.x - npc.x;
         const dy = nextPoint.y - npc.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
-        const speed = npc.stats ? npc.stats.speed * 800 : 60; //use enemy speed if available
+        const speed = npc.stats ? npc.stats.speed * 16 : 60; //use enemy speed if available
         //console.log(speed);
         const duration = (distance / speed) * 1000;
 
