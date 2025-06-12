@@ -32,14 +32,25 @@ class Turret {
             cooldown: 0,
             damage: 0,
             range: 0,
-            fire: 0,
-            frost: 0
+            fire: 0, //hahahaha
+            frost: 0 ///hahahaah you wish
         }
         this.runeSprites = [];
         this.upgradePotential = false; //this is strictly used for the sanity check, to allow for the caveat of adding a higher level rune than the current one. 
 
         //update stats based on type using function below
         this.updateStatsByType();
+
+    
+        this.vfx = {};
+        this.vfx.slash = this.scene.add.particles(0, 0, 's2', {
+            scale: { start: .1, end: 0.05 },
+            lifespan: 200,
+            speed: 20,
+            angle: { min: 0, max: 360 },
+            blendMode: 'ADD',
+        }).setDepth(1000);
+        this.vfx.slash.stop();
     }
 
     //search for the closest enemy within range and attack... this differs between turret types
@@ -75,6 +86,8 @@ class Turret {
         if(enemiesInRange.length > 0) {
             for(let enemy of enemiesInRange) {
                 if(!enemy) continue; // Skip if enemy is null or undefined
+                this.vfx.slash.setPosition(enemy.x, enemy.y);
+                this.vfx.slash.emitParticle(1);
                 enemy.takeDamage(this.currentDamage); // Deal damage to the enemy
             }
         }

@@ -68,6 +68,9 @@ class Load extends Phaser.Scene {
 
         //my more beautiful particles
         this.load.image("sparkle", "kenney_particle-pack/star_06.png");
+        this.load.image("s2", "kenney_particle-pack/twirl_02.png");
+        this.load.image("wiz", "kenney_particle-pack/spark_01.png");
+
 
     }
 
