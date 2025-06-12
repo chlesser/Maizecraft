@@ -259,7 +259,6 @@ class Pathfinder extends Phaser.Scene {
 
         //particles yeah in the main file because i hate you guys
         this.vfx.wizardblast = this.add.particles(0, 0, 'sparkle', {
-            frame: 'sparkle',
             scale: { start: 0.05, end: 0 },
             lifespan: 300,
             speed: { min: 50, max: 150 },
