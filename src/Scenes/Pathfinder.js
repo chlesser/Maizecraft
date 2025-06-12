@@ -289,6 +289,7 @@ class Pathfinder extends Phaser.Scene {
         this.lobby = this.sound.add('ambiance', {loop: false,volume: .07  });
         this.ambiance = this.sound.add('ambiancept2', {loop: false,volume: .07  });
         this.popFromShopSound = this.sound.add('pop', {loop: false,volume: .05  });
+        this.crunchSound = this.sound.add('crunch', {loop: false,volume: .05  });
     }
 
     create() {
@@ -1094,6 +1095,7 @@ class Pathfinder extends Phaser.Scene {
                     if (friend.turret.tileX === scaledX && friend.turret.tileY === scaledY)
                     {
                         this.flashRed(hero); // Flash red to indicate tile is occupied
+                        this.crunchSound.play(); // Play sound when not enough corn
                         return; // Exit if the tile is already occupied
                     }
                 }
@@ -1170,6 +1172,7 @@ class Pathfinder extends Phaser.Scene {
                             return; // Exit after placing the rune
                         } else {
                             this.flashRed(rune); // Flash red to indicate tile is occupied
+                            this.crunchSound.play(); // Play sound when not enough corn
                         }
                     } else {
                         this.flashRed(rune); // Flash red to indicate tile is occupied
@@ -1230,6 +1233,7 @@ class Pathfinder extends Phaser.Scene {
                 .setDepth(101)
                 .on('pointerdown', () => {
                     if(this.corn < cost) {
+                        this.crunchSound.play(); // Play sound when not enough corn
                         //shake the button if not enough corn
                         this.tweens.add({
                             targets: [button, shopCornText],
@@ -1305,6 +1309,7 @@ class Pathfinder extends Phaser.Scene {
             .on('pointerdown', () => {
                 if(this.mode.DEFAULT) {
                     if(this.corn < this.shopCosts.refresh) {
+                        this.crunchSound.play(); // Play sound when not enough corn
                         //shake the button if not enough corn
                         this.tweens.add({
                             targets: [refreshButton],
@@ -1328,6 +1333,7 @@ class Pathfinder extends Phaser.Scene {
                         refreshButton.setScale(0.8); // Scale down on click
                         refreshIcon.setScale(0.8); // Scale down the icon
                         this.updateCornCounter(-this.shopCosts.refresh); // Update corn counter with negative value
+                        this.popFromShopSound.play(); // Play sound when spawning turret
                         this.populateShop(); // Refresh the shop runes
                         this.tweens.add({
                             targets: [refreshButton],
@@ -1561,6 +1567,7 @@ class Pathfinder extends Phaser.Scene {
             button.on('pointerdown', () => {
                     if(this.corn < cost) {
                         //shake the button if not enough corn
+                        this.crunchSound.play(); // Play sound when not enough corn
                         this.tweens.add({
                             targets: [button, text],
                             x: button.x + 5,
