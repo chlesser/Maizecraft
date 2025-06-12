@@ -62,7 +62,7 @@ class Turret {
     //search for the closest enemy within range and attack... this differs between turret types
     update(enemies) {
         this.now = Date.now();
-        const timeSinceLastShot = now - this.lastShotTime;
+        const timeSinceLastShot = this.now - this.lastShotTime;
         if (timeSinceLastShot < this.currentCooldown) {
             return; // Still in cooldown, do not attack
         }
