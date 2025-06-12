@@ -41,6 +41,9 @@ class Title extends Phaser.Scene {
       this.createSettingsPopup(width / 2, height / 2);
     });
 
+    this.lobby = this.sound.add('ambiance', {loop: false,volume: .07  });
+    this.lobby.play();
+
     }
 
     createSettingsPopup(x, y) {
