@@ -66,8 +66,6 @@ class Turret {
         if (timeSinceLastShot < this.currentCooldown) {
             return; // Still in cooldown, do not attack
         }
-        this.lastShotTime = now;
-
         // Update logic for the turret can be added here
         switch (this.type) {
             case 'warrior':
@@ -91,7 +89,8 @@ class Turret {
         let enemiesInRange = this.withinRange(enemies);
         if(enemiesInRange.length > 0) {
             for(let enemy of enemiesInRange) {
-                if(!enemy) continue; // Skip if enemy is null or undefined
+                this.lastShotTime = now;
+                if(enemy == null) continue; // Skip if neemy is null or undefined
                 this.swipe.play();
                 this.vfx.slash.setPosition(enemy.x, enemy.y);
                 this.vfx.slash.emitParticle(1);
@@ -104,6 +103,7 @@ class Turret {
         let enemy = this.searchForEnemy(enemies);
         if(enemy != null) {
             this.arrow1.play();
+            this.lastShotTime = now;
             let arrow = new Arrow({
                 scene: this.scene,
                 x: this.realX,
@@ -119,6 +119,7 @@ class Turret {
         let enemy = this.searchForEnemy(enemies);
         if(enemy != null) {
             this.spell1.play();
+            this.lastShotTime = now;
             let orb = new Orb({
                 scene: this.scene,
                 x: this.realX,
