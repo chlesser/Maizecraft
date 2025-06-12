@@ -6,7 +6,6 @@ class Load extends Phaser.Scene {
     preload() {
         this.load.setPath("./assets/");
 
-
         //load as sprite sheet to index randomly later...
         this.load.spritesheet("chars", "roguelikeChar_transparent.png", {
             frameWidth: 17,
@@ -57,6 +56,11 @@ class Load extends Phaser.Scene {
         this.load.image('refreshIcon', 'refreshIcon.png');
         this.load.image('range', 'RangeSample.png');
         this.load.image('backSprite', 'back.png')
+
+        // beautiful new fancy font
+        this.load.bitmapFont("pixelFont", "font.png", "font.fnt");
+        // title card background image
+        this.load.image("titleBg", "TitleBg.png");
 
         //fix path
         this.load.setPath("./assets/");
@@ -115,7 +119,7 @@ class Load extends Phaser.Scene {
     }
 
     create() {
-        this.scene.start("pathfinderScene");
+        this.scene.start("titleScene");
     }
 
     // Never get here since a new scene is started in create()
