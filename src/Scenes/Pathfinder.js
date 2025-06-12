@@ -1,6 +1,7 @@
 class Pathfinder extends Phaser.Scene {
     constructor() {
         super("pathfinderScene");
+        this.vfx = {}; 
 
         // npc pool
         this.npcPool = null;
@@ -66,7 +67,6 @@ class Pathfinder extends Phaser.Scene {
     }
 
     create() {
-
         // Initialize properties
         this.modeReset();
         this.currentTurret = null;
@@ -172,6 +172,18 @@ class Pathfinder extends Phaser.Scene {
         // TO DO
         // this.createHealthBar();
         this.createCornCounter();
+
+        //particles yeah in the main file because i hate you guys
+        this.vfx.wizardblast = this.add.particles(0, 0, 'sparkle', {
+            frame: 'sparkle',
+            scale: { start: 0.05, end: 0 },
+            lifespan: 300,
+            speed: { min: 50, max: 150 },
+            angle: { min: 0, max: 360 },
+            blendMode: 'ADD', //this makes it look scrum asf
+            }).setDepth(1000);
+        this.vfx.wizardblast.stop();
+
     }
 
     update() {
@@ -342,6 +354,7 @@ class Pathfinder extends Phaser.Scene {
     enemyDefeated(enemy) {
         if (enemy.isDead) { // Extra protection
             //award corn
+            this.playdeathvfx(enemy.x, enemy.y);
             this.despawnNPC(enemy);
             this.enemies.splice(this.enemies.indexOf(enemy), 1); // Remove from enemies list
             enemy.destroy(); // Destroy the enemy object
@@ -592,6 +605,11 @@ class Pathfinder extends Phaser.Scene {
         // Flash the sprite red to indicate damage
         //girl theres nothing here XD
 
+    }
+
+    playdeathvfx(x, y) {
+        this.vfx.wizardblast.setPosition(x, y);
+        this.vfx.wizardblast.explode(Phaser.Math.Between(8, 10));
     }
 
     layersToGrid(layers) {
