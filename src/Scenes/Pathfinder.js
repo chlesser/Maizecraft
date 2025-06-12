@@ -1195,7 +1195,7 @@ class Pathfinder extends Phaser.Scene {
 
     /*------- Tina's UI Corner -------*/
     createUI() {
-        // UI bar background - replace with asset later
+        // UI bar background
         this.uiBar = this.add.sprite(this.map.widthInPixels/2, this.map.heightInPixels/2 + (18 * this.TILESIZE), 'backSprite')
             .setDepth(100)
             .setOrigin(0, 0)
@@ -1216,12 +1216,8 @@ class Pathfinder extends Phaser.Scene {
 
             //creating how much each costs
             let cost = this.getCost(type);
-            let shopCornText = this.add.text(x - 2, y + 16, `🌽${cost}`, {
-                    fontSize: '12px',
-                    fill: '#fff',
-                    stroke: '#000',
-                    strokeThickness: 4,
-                }).setScrollFactor(0).setDepth(102).setOrigin(0.5, 0.5);
+            let shopCornText = this.add.bitmapText(x -2, y + 20, "blackPixelFont", `${cost}`, 16).setScrollFactor(0).setDepth(200).setOrigin(0.5);
+        
             
             const button = this.add.image(x, y, iconKey)
                 .setDisplaySize(48, 64)  
@@ -1270,12 +1266,8 @@ class Pathfinder extends Phaser.Scene {
 
             //creating how much each costs
             let cost = 0;
-            let shopCornText = this.add.text(x - 2, y + 16, `🌽${cost}`, {
-                    fontSize: '12px',
-                    fill: '#fff',
-                    stroke: '#000',
-                    strokeThickness: 4,
-                }).setScrollFactor(0).setDepth(102).setOrigin(0.5, 0.5);
+            let shopCornText = this.add.bitmapText(x -2, y + 20, "blackPixelFont", `🌽` + `${cost}`, 16).setScrollFactor(0).setDepth(200).setOrigin(0.5);
+
             
             let button = this.add.image(x, y, iconKey)
                 .setDisplaySize(44, 64)  
@@ -1293,12 +1285,7 @@ class Pathfinder extends Phaser.Scene {
         const x = this.map.widthInPixels/2 + 477;
 
         let cost = this.getCost('refresh'); // Get the cost for refreshing the shop
-        let shopCornText = this.add.text(x - 2, y + 16, `🌽${cost}`, {
-            fontSize: '12px',
-            fill: '#fff',
-            stroke: '#000',
-            strokeThickness: 4,
-        }).setScrollFactor(0).setDepth(102).setOrigin(0.5, 0.5);
+        let shopCornText = this.add.bitmapText(x -2, y + 20, "blackPixelFont", `${cost}`, 16).setScrollFactor(0).setDepth(200).setOrigin(0.5);
 
         const refreshIcon = this.add.image(this.map.widthInPixels/2 + 157, this.map.heightInPixels/2 + 135, iconKey)
             .setDisplaySize(20, 20)
@@ -1413,32 +1400,35 @@ class Pathfinder extends Phaser.Scene {
             });
         }
     }
+
     createHealthCounter() {
-        this.healthText = this.add.text(890, 516, `❤️ ${this.cornfieldhealth}`, {
-            fontSize: '20px',
-            fill: '#fff',
-            stroke: '#000',
-        strokeThickness: 4,
-        shadow: {
-            offsetX: 2,
-            offsetY: 2,
-            color: '#444',
-            blur: 2,
-            stroke: true
-        }}).setScrollFactor(0).setDepth(200).setOrigin(0.5);
+        const spacing = 4;
+        // have to add health icon too
+        this.healthIcon = this.add.image(0, 0, "heartIcon").setDisplaySize(20, 20).setOrigin(0, 0.5);
+
+        this.healthText = this.add.bitmapText(this.healthIcon.displayWidth + spacing, 0, "blackPixelFont", `${this.cornfieldhealth}`, 20)
+            .setOrigin(0, 0.5)
+            .setScrollFactor(0)
+            .setDepth(200);
+
+        this.healthContainer = this.add.container(875, 518, [this.healthIcon, this.healthText])
+            .setScrollFactor(0)
+            .setDepth(200);
     }
 
     updateHealthCounter(amount = 0) {
-        // change font + corn photo later 
         amount = Math.trunc(amount);
+        this.cornfieldhealth += amount;
 
-        this.cornfieldhealth += amount; // Update corn count
-        this.healthText.setText(`❤️ ${this.cornfieldhealth}`);
+        this.healthText.setText(`${this.cornfieldhealth}`);
 
-        // corn jumpscare animation
-        this.healthText.setScale(1);
+        // Recalculate position in case text size changes
+        const spacing = 4;
+        this.healthText.x = this.healthIcon.displayWidth + spacing;
+
+        this.healthContainer.setScale(1);
         this.tweens.add({
-            targets: this.healthText,
+            targets: this.healthContainer,
             scaleX: 1.08,
             scaleY: 1.08,
             duration: 80,
@@ -1446,29 +1436,34 @@ class Pathfinder extends Phaser.Scene {
             ease: 'Back.easeOut'
         });
     }
+
     createWaveCounter() {
-        this.waveText = this.add.text(890, 540, `☠️ ${this.currentWave}`, {
-            fontSize: '20px',
-            fill: '#fff',
-            stroke: '#000',
-        strokeThickness: 4,
-        shadow: {
-            offsetX: 2,
-            offsetY: 2,
-            color: '#444',
-            blur: 2,
-            stroke: true
-        }}).setScrollFactor(0).setDepth(200).setOrigin(0.5);
+        const spacing = 4;
+
+        this.waveIcon = this.add.image(0, 0, "waveIcon")
+            .setDisplaySize(20, 20)
+                .setOrigin(0, 0.5);
+
+     this.waveText = this.add.bitmapText(this.waveIcon.displayWidth + spacing, 0, "blackPixelFont", `${this.currentWave}`, 20)
+        .setOrigin(0, 0.5)
+        .setScrollFactor(0)
+        .setDepth(200);
+
+        this.waveContainer = this.add.container(880, 542, [this.waveIcon, this.waveText])
+            .setScrollFactor(0)
+            .setDepth(200);
     }
 
     updateWaveCounter() {
-        // change font + corn photo later 
-        this.waveText.setText(`☠️ ${this.currentWave}`);
+        this.waveText.setText(`${this.currentWave}`);
 
-        // corn jumpscare animation
-        this.waveText.setScale(1);
+        // Recalculate position in case text size changes
+        const spacing = 4;
+        this.waveText.x = this.waveIcon.displayWidth + spacing;
+
+        this.waveContainer.setScale(1);
         this.tweens.add({
-            targets: this.waveText,
+            targets: this.waveContainer,
             scaleX: 1.08,
             scaleY: 1.08,
             duration: 80,
@@ -1476,29 +1471,33 @@ class Pathfinder extends Phaser.Scene {
             ease: 'Back.easeOut'
         });
     }
+
     createEnemiesCounter() {
-        this.enemyText = this.add.text(890, 566, `😈 ${this.killedEnemies}/${this.enemiesInWave}`, {
-            fontSize: '20px',
-            fill: '#fff',
-            stroke: '#000',
-        strokeThickness: 4,
-        shadow: {
-            offsetX: 2,
-            offsetY: 2,
-            color: '#444',
-            blur: 2,
-            stroke: true
-        }}).setScrollFactor(0).setDepth(200).setOrigin(0.5);
+        const spacing = 5;
+
+        this.enemyIcon = this.add.image(0, 0, "enemyIcon")
+            .setDisplaySize(20, 20)
+            .setOrigin(0, 0.5);
+
+        this.enemyText = this.add.bitmapText(this.enemyIcon.displayWidth + spacing, 0, "blackPixelFont", `${this.killedEnemies}/${this.enemiesInWave}`, 20)
+            .setOrigin(0, 0.5)  // changed from 0.5 to 0 so it aligns properly
+            .setScrollFactor(0)
+            .setDepth(200);
+
+        this.enemyContainer = this.add.container(868, 568, [this.enemyIcon, this.enemyText])
+            .setScrollFactor(0)
+            .setDepth(200);
     }
 
     updateEnemiesCounter() {
-        // change font + corn photo later 
-        this.enemyText.setText(`😈 ${this.killedEnemies}/${this.enemiesInWave}`);
+        this.enemyText.setText(`${this.killedEnemies}/${this.enemiesInWave}`);
 
-        // corn jumpscare animation
-        this.enemyText.setScale(1);
+        const spacing = 5;
+        this.enemyText.x = this.enemyIcon.displayWidth + spacing;
+
+        this.enemyContainer.setScale(1);
         this.tweens.add({
-            targets: this.enemyText,
+            targets: this.enemyContainer,
             scaleX: 1.08,
             scaleY: 1.08,
             duration: 80,
@@ -1506,6 +1505,8 @@ class Pathfinder extends Phaser.Scene {
             ease: 'Back.easeOut'
         });
     }
+
+
     /*
         This function populates the rune shop
         Input --> Takes a 
@@ -1549,7 +1550,7 @@ class Pathfinder extends Phaser.Scene {
             button.removeAllListeners(); // Remove previous listeners to avoid stacking
 
             let cost = this.getCost(`level${rune.level}`); // Get cost based on rune level
-            text.setText(`🌽${cost}`); // Update the text with the cost
+            text.setText(`${cost}`); // Update the text with the cost
 
             rune.x = button.x - 320;
             rune.y = button.y - 210;
