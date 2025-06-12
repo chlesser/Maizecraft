@@ -188,7 +188,7 @@ class Pathfinder extends Phaser.Scene {
         });
 
         //delete later
-        this.keys = this.input.keyboard.addKeys('R,D,P');
+        this.keys = this.input.keyboard.addKeys('SPACE,P,R');
         this.pointer = this.input.activePointer;
         
         //Right click to reset mode and destroy current turret/rune
@@ -293,19 +293,26 @@ class Pathfinder extends Phaser.Scene {
         if (!this.ambiance.isPlaying) {
                 this.ambiance.play();
         }
+
+        const { width, height } = this.scale;
+
+        this.startText = this.add.bitmapText(width / 4, height / 4 - 100, "pixelFont", "Press SPACE to start!", 50).setOrigin(0.5);
+        this.startText.setVisible(true);
+        this.startText.setDepth(1000);
+        this.startText.setTint(0x000000); // Yellow tint for visibility
     }
 
     create() {
         //this.init();
         //orcsounds
-
     }
 
     update() {
         if (Phaser.Input.Keyboard.JustDown(this.keys.P) && Phaser.Input.Keyboard.JustDown(this.keys.R)) {
             this.updateCornCounter(1000); // Add 1000 corn for testing
         }
-        if (Phaser.Input.Keyboard.JustDown(this.keys.D)) {
+        if (Phaser.Input.Keyboard.JustDown(this.keys.SPACE) && this.startText.visible) {
+            this.startText.setVisible(false);
             this.startWave();
         }
         //HANDLE GLOBAL MODE UPDATING
