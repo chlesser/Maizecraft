@@ -270,6 +270,16 @@ class Pathfinder extends Phaser.Scene {
 
     create() {
         this.init();
+        this.o1 = this.sound.add('o1', {loop: false,volume: 1  });
+        this.o2 = this.sound.add('o2', {loop: false,volume: 1  });
+        this.o3 = this.sound.add('o3', {loop: false,volume: 1  });
+        this.o4 = this.sound.add('o4', {loop: false,volume: 1  });
+        this.o5 = this.sound.add('o5', {loop: false,volume: 1  });
+        this.o6 = this.sound.add('o6', {loop: false,volume: 1  });
+        this.o7 = this.sound.add('o7', {loop: false,volume: 1  });
+        this.o8 = this.sound.add('o8', {loop: false,volume: 1  });
+        this.o9 = this.sound.add('o9', {loop: false,volume: 1  });
+
     }
 
     update() {
@@ -308,7 +318,7 @@ class Pathfinder extends Phaser.Scene {
             this.isWaveRunning = true;
 
             console.log(`Starting Wave ${this.currentWave}`);
-    
+
             const powerPoints = 2 * this.currentWave
             const waveType = this.currentWave % 5 || 5;
     
@@ -441,6 +451,7 @@ class Pathfinder extends Phaser.Scene {
 
         //spawn boss
         this.spawnEnemy(bossPP, true, false);
+        this.o5.play();
         this.updateEnemiesCounter();
     }
 
