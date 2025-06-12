@@ -55,10 +55,14 @@ class Load extends Phaser.Scene {
         this.load.image('buttonBackground', 'buttonBack.png');
         this.load.image('refreshIcon', 'refreshIcon.png');
         this.load.image('range', 'RangeSample.png');
-        this.load.image('backSprite', 'back.png')
+        this.load.image('backSprite', 'back.png');
+        this.load.image('heartIcon', 'heartIcon.png');
+        this.load.image('enemyIcon', 'enemyIcon.png');
+        this.load.image('waveIcon', 'waveIcon.png');
 
         // beautiful new fancy font
         this.load.bitmapFont("pixelFont", "font.png", "font.fnt");
+        this.load.bitmapFont("blackPixelFont", "font-black.png", "font.fnt");
         // title card background image
         this.load.image("titleBg", "TitleBg.png");
 
