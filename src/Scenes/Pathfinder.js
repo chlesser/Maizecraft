@@ -270,7 +270,7 @@ class Pathfinder extends Phaser.Scene {
     }
 
     create() {
-        this.init();
+        //this.init();
     }
 
     update() {
