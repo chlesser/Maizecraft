@@ -164,17 +164,17 @@ class Turret {
         switch (this.type) {
             case 'warrior':
                 this.baseDamage = 5;
-                this.baseRange = 3;
+                this.baseRange = 5;
                 this.baseCooldown = 1500;
                 break;
             case 'archer':
                 this.baseDamage = 2;
-                this.baseRange = 20;
+                this.baseRange = 25;
                 this.baseCooldown = 800;
                 break;
             case 'wizard':
                 this.baseDamage = 15;
-                this.baseRange = 10;
+                this.baseRange = 13;
                 this.baseCooldown = 4000;
                 break;
             default:

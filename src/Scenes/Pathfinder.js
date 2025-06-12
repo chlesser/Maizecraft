@@ -19,7 +19,7 @@ class Pathfinder extends Phaser.Scene {
 
         //logic
         this.cornfieldhealth = 10
-        this.corn = 100;
+        this.corn = 50;
 
         //shop costs
         this.shopCosts = {
@@ -65,12 +65,68 @@ class Pathfinder extends Phaser.Scene {
     preload() {
         this.load.spritesheet('chars', 'assets/chars.png');
     }
+    init() {
+        this.vfx = {}; 
 
-    create() {
-        // Initialize properties
-        this.modeReset();
+        // npc pool
+        this.npcPool = null;
+        this.TURRET_SCALE = 2; // Scale for turret sprites
+
+        // modes
+        this.mode = {
+            PLACE: false,
+            RUNE: false,
+            DEFAULT: true
+        }
         this.currentTurret = null;
         this.currentRune = null;
+        this.isWaveRunning = false;
+
+        //logic
+        this.cornfieldhealth = 10
+        this.corn = 50;
+
+        //shop costs
+        this.shopCosts = {
+            warrior: 50,
+            archer: 100,
+            wizard: 300,
+            refresh: 25,
+            level1: 50,
+            level2: 200,
+            level3: 500,
+        }
+        this.shopSlots = []; //contains a reference to the shop button
+        this.shopRunes = []; //rune objects in the shop
+        this.removedPos = -1;
+        
+        this.currentWave = 1;
+        this.waveSet = 5; //each set contains 5 waves
+        this.spawnInterval = null;
+        this.enemiesInWave = 0;
+        this.killedEnemies = 0;
+        
+        //enemy stats
+        this.enemyStats = {
+            speed: (x) =>  0.1 * x + 1,
+            health: (x) => 15 * Math.exp(0.1 * x) - 10,
+            damage: (x) => 0.1 * x + 1,
+            corn: (x) => 10 * x
+        };
+
+        //map properties
+        this.TILESIZE = 16;
+        this.SCALE = 2.0;
+        this.TILEWIDTH = 40;
+        this.TILEHEIGHT = 25;
+
+        //list of placed turrets
+        this.turrets = [];
+        this.enemies = [];
+
+        this.rangeView = null; // Range view for turrets
+
+        this.modeReset();
         
         //Initialize tilemap 
         this.map = this.add.tilemap("maizecraft-map", this.TILESIZE, this.TILESIZE);
@@ -138,6 +194,7 @@ class Pathfinder extends Phaser.Scene {
         //Right click to reset mode and destroy current turret/rune
         this.input.on('pointerdown', (pointer) => {
             if(pointer.rightButtonDown()) {
+                this.rangeView.setVisible(false);
                 this.modeReset();
                 if(this.currentTurret != null) {
                     const concat = "" + this.currentTurret.turret.type;
@@ -153,11 +210,37 @@ class Pathfinder extends Phaser.Scene {
                     if (this.removedPos >= 0 && this.removedPos < this.shopRunes.length) {
                         this.shopRunes[this.removedPos] = this.currentRune;
                         this.shopSlots[this.removedPos].button.input.enabled = true; // Re-enable the button
+                        this.shopSlots[this.removedPos].button.removeAllListeners();
                         this.currentRune.setAlpha(1);
                         this.updateShopVisuals();
                     }
                     this.currentRune = null;
                     this.removedPos = -1; // Reset removed position
+                }
+            } else{
+                if(this.mode.DEFAULT)
+                {
+                    const tileX = Math.floor(this.pointer.worldX / this.TILESIZE);
+                    const tileY = Math.floor(this.pointer.worldY / this.TILESIZE);
+                    let scaledX = ((Math.trunc(tileX / this.TURRET_SCALE) + 0.5) * this.TILESIZE * this.TURRET_SCALE);
+                    let scaledY = ((Math.trunc(tileY / this.TURRET_SCALE) + 0.5) * this.TILESIZE * this.TURRET_SCALE);
+
+                    let found = false;
+                    for(const friend of this.turrets) {
+                        if (friend.turret.tileX === scaledX && friend.turret.tileY === scaledY)
+                        {
+                            found = true;
+                            this.rangeView.setPosition(scaledX, scaledY);
+                            this.rangeView.setScale(friend.turret.currentRange / 2); // Scale range view based on turret range
+                            this.rangeView.setVisible(true); // Show range view when placing turret
+                        }
+                    }
+                    if (!found) {
+                        this.rangeView.setVisible(false);
+                    }
+                }
+                else {
+                    this.rangeView.setVisible(false);
                 }
             }
         })
@@ -170,6 +253,9 @@ class Pathfinder extends Phaser.Scene {
         // TO DO
         // this.createHealthBar();
         this.createCornCounter();
+        this.createHealthCounter();
+        this.createWaveCounter();
+        this.createEnemiesCounter();
 
         //particles yeah in the main file because i hate you guys
         this.vfx.wizardblast = this.add.particles(0, 0, 'sparkle', {
@@ -180,7 +266,10 @@ class Pathfinder extends Phaser.Scene {
             blendMode: 'ADD', //this makes it look scrum asf
             }).setDepth(1000);
         this.vfx.wizardblast.stop();
+    }
 
+    create() {
+        this.init();
     }
 
     update() {
@@ -236,13 +325,15 @@ class Pathfinder extends Phaser.Scene {
         //Wave 1:
         
         const ppPerEnemy = Math.max(0.1 * powerPoints / 10, 1);
+        let enemyCount = 1; // Default to 1 enemy for wave 1
         if (this.currentWave == 1){
             this.enemiesInWave = 1;
-            const enemyCount = 1;
+            enemyCount = 1;
         }else{
             this.enemiesInWave = 10;
-            const enemyCount = 10;
+            enemyCount = 10;
         }
+
         
         this.spawnInterval = this.time.addEvent({
             delay: 1200,
@@ -250,8 +341,9 @@ class Pathfinder extends Phaser.Scene {
                 this.spawnEnemy(ppPerEnemy);
             },
             callbackScope: this,
-            repeat: this.enemiesInWave - 1
+            repeat: enemyCount - 1
         });
+        this.updateEnemiesCounter();
         }
 
         spawnWaveType2(powerPoints) {
@@ -284,6 +376,7 @@ class Pathfinder extends Phaser.Scene {
             },
             callbackScope: this
         });
+        this.updateEnemiesCounter();
     }
 
     spawnWaveType3(powerPoints) {
@@ -310,6 +403,7 @@ class Pathfinder extends Phaser.Scene {
             },
             callbackScope: this
         });
+        this.updateEnemiesCounter();
     }
 
     spawnWaveType4(powerPoints) {
@@ -337,6 +431,7 @@ class Pathfinder extends Phaser.Scene {
             repeat: enemyCount - 1
         });
     }
+    this.updateEnemiesCounter();
 }
 
     spawnWaveType5(powerPoints) {
@@ -346,6 +441,7 @@ class Pathfinder extends Phaser.Scene {
 
         //spawn boss
         this.spawnEnemy(bossPP, true, false);
+        this.updateEnemiesCounter();
     }
 
     enemyDefeated(enemy) {
@@ -387,6 +483,7 @@ class Pathfinder extends Phaser.Scene {
         if (this.spawnInterval) this.spawnInterval.destroy();
     
         this.currentWave++;
+        this.updateWaveCounter();
         if (this.currentWave % 5 === 1) this.waveSet++;
     
         // Start next wave after delay
@@ -538,7 +635,7 @@ class Pathfinder extends Phaser.Scene {
         this.killedEnemies++;
     
         //reduce corn field health
-        this.cornfieldhealth -= npc.stats ? npc.stats.damage : 1;
+        this.updateHealthCounter(-(npc.stats ? npc.stats.damage : 1));
         console.log(`Cornfield health: ${this.cornfieldhealth}`);
     
         this.despawnNPC(npc);
@@ -594,6 +691,7 @@ class Pathfinder extends Phaser.Scene {
         if (enemy.stats.health <= 0) {
             enemy.isDead = true; // Mark as dead before processing
             this.enemyDefeated(enemy);
+            this.updateEnemiesCounter();
         } else {
             //
         }
@@ -900,7 +998,7 @@ class Pathfinder extends Phaser.Scene {
 
             //we set the range view to the hero's position
             this.rangeView.setPosition(scaledX, scaledY);
-            this.rangeView.setScale(hero.turret.currentRange); // Scale range view based on turret range
+            this.rangeView.setScale(hero.turret.currentRange / 2); // Scale range view based on turret range
             this.rangeView.setVisible(true); // Show range view when placing turret
 
             //finally, we start to detect if the cursor is pressed
@@ -1191,6 +1289,8 @@ class Pathfinder extends Phaser.Scene {
 
     updateCornCounter(amount = 0) {
         // change font + corn photo later 
+        amount = Math.trunc(amount);
+
         this.corn += amount; // Update corn count
         this.cornText.setText(`🌽 ${this.corn}`);
 
@@ -1228,6 +1328,99 @@ class Pathfinder extends Phaser.Scene {
             });
         }
     }
+    createHealthCounter() {
+        this.healthText = this.add.text(890, 516, `❤️ ${this.cornfieldhealth}`, {
+            fontSize: '20px',
+            fill: '#fff',
+            stroke: '#000',
+        strokeThickness: 4,
+        shadow: {
+            offsetX: 2,
+            offsetY: 2,
+            color: '#444',
+            blur: 2,
+            stroke: true
+        }}).setScrollFactor(0).setDepth(200).setOrigin(0.5);
+    }
+
+    updateHealthCounter(amount = 0) {
+        // change font + corn photo later 
+        amount = Math.trunc(amount);
+
+        this.cornfieldhealth += amount; // Update corn count
+        this.healthText.setText(`❤️ ${this.cornfieldhealth}`);
+
+        // corn jumpscare animation
+        this.healthText.setScale(1);
+        this.tweens.add({
+            targets: this.healthText,
+            scaleX: 1.08,
+            scaleY: 1.08,
+            duration: 80,
+            yoyo: true,
+            ease: 'Back.easeOut'
+        });
+    }
+    createWaveCounter() {
+        this.waveText = this.add.text(890, 540, `☠️ ${this.currentWave}`, {
+            fontSize: '20px',
+            fill: '#fff',
+            stroke: '#000',
+        strokeThickness: 4,
+        shadow: {
+            offsetX: 2,
+            offsetY: 2,
+            color: '#444',
+            blur: 2,
+            stroke: true
+        }}).setScrollFactor(0).setDepth(200).setOrigin(0.5);
+    }
+
+    updateWaveCounter() {
+        // change font + corn photo later 
+        this.waveText.setText(`☠️ ${this.currentWave}`);
+
+        // corn jumpscare animation
+        this.waveText.setScale(1);
+        this.tweens.add({
+            targets: this.waveText,
+            scaleX: 1.08,
+            scaleY: 1.08,
+            duration: 80,
+            yoyo: true,
+            ease: 'Back.easeOut'
+        });
+    }
+    createEnemiesCounter() {
+        this.enemyText = this.add.text(890, 566, `😈 ${this.killedEnemies}/${this.enemiesInWave}`, {
+            fontSize: '20px',
+            fill: '#fff',
+            stroke: '#000',
+        strokeThickness: 4,
+        shadow: {
+            offsetX: 2,
+            offsetY: 2,
+            color: '#444',
+            blur: 2,
+            stroke: true
+        }}).setScrollFactor(0).setDepth(200).setOrigin(0.5);
+    }
+
+    updateEnemiesCounter() {
+        // change font + corn photo later 
+        this.enemyText.setText(`😈 ${this.killedEnemies}/${this.enemiesInWave}`);
+
+        // corn jumpscare animation
+        this.enemyText.setScale(1);
+        this.tweens.add({
+            targets: this.enemyText,
+            scaleX: 1.08,
+            scaleY: 1.08,
+            duration: 80,
+            yoyo: true,
+            ease: 'Back.easeOut'
+        });
+    }
     /*
         This function populates the rune shop
         Input --> Takes a 
@@ -1236,8 +1429,13 @@ class Pathfinder extends Phaser.Scene {
         const existing = this.shopRunes.length > 0; //this is a bool that determines if the shop is already populated
         // Clear existing runes if shop is already populated
         if (existing) {
-            this.shopRunes.forEach(rune => rune.destroy());
+            this.shopRunes.forEach(rune => {
+                if(rune !== null) {
+                    rune.destroy(); // Destroy existing runes
+                }
+            });
             this.shopRunes = [];
+            this.removedPos = null; // Reset removed position
         }
         // Generate new runes
         let newRunes = [];
@@ -1246,6 +1444,7 @@ class Pathfinder extends Phaser.Scene {
             rune.setDepth(500);
             newRunes.push(rune);
         }
+
         // Add new runes to the shop
         this.shopRunes = newRunes;
         this.updateShopVisuals();
@@ -1253,13 +1452,16 @@ class Pathfinder extends Phaser.Scene {
     updateShopVisuals() {
         for(let i = 0; i < this.shopSlots.length; i++) {
         console.log(`Adding rune to slot ${i}`);
-            let button = this.shopSlots[i].button;
-            let text = this.shopSlots[i].cornText;
             let rune = this.shopRunes[i];
             if(rune === null) {
                 console.log(`No rune available for slot ${i}`);
                 continue; // Skip if no rune available
             }
+            let button = this.shopSlots[i].button;
+            let text = this.shopSlots[i].cornText;
+
+            button.input.enabled = true; // Enable button interaction
+            button.removeAllListeners(); // Remove previous listeners to avoid stacking
 
             let cost = this.getCost(`level${rune.level}`); // Get cost based on rune level
             text.setText(`🌽${cost}`); // Update the text with the cost
@@ -1294,7 +1496,8 @@ class Pathfinder extends Phaser.Scene {
                             this.updateCornCounter(-cost); // Update corn counter with negative value
                             this.currentRune = rune; // Example turret type
                             this.removedPos = this.shopRunes.indexOf(rune); // Get the index of the rune being purchased
-                            this.shopRunes[rune] = null; // Remove rune from shop
+                            this.tweens.killTweensOf(rune); // Stop any existing tweens on the rune
+                            this.shopRunes[this.shopRunes.indexOf(rune)] = null; // Remove rune from shop
                             this.modeReset('RUNE');
                             button.input.enabled = false; // Disable button interaction
                             this.tweens.add({
